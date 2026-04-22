@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="LeadScan"/>
+<meta name="theme-color" content="#0f0f0f"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>LeadScan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f4f2;
+    --bg3: #eeecea;
+    --text: #0f0f0f;
+    --text2: #6b6a67;
+    --text3: #a09e9b;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --accent: #0f0f0f;
+    --accent-text: #ffffff;
+    --warm: #92400e;
+    --warm-bg: #fef3c7;
+    --cold: #374151;
+    --cold-bg: #f3f4f6;
+    --info: #1d4ed8;
+    --info-bg: #eff6ff;
+    --success: #166534;
+    --success-bg: #dcfce7;
+    --r: 10px;
+    --r-lg: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141414;
+      --bg2: #1e1e1e;
+      --bg3: #282828;
+      --text: #f0eeeb;
+      --text2: #9a9794;
+      --text3: #5c5a57;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+      --accent: #f0eeeb;
+      --accent-text: #141414;
+      --warm: #fbbf24;
+      --warm-bg: #292010;
+      --cold: #9ca3af;
+      --cold-bg: #1f2937;
+      --info: #60a5fa;
+      --info-bg: #1e2a3a;
+      --success: #4ade80;
+      --success-bg: #1a2e1a;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 10px;
+    border-bottom: 0.5px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+  .header-title { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+  .header-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  /* Tab bar */
+  .tabbar {
+    display: flex;
+    border-bottom: 0.5px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+  .tab {
+    flex: 1;
+    padding: 11px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  /* Scrollable content */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  .panel { display: none; padding: 18px; }
+  .panel.active { display: block; }
+
+  /* Form elements */
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  input[type=text], input[type=email], input[type=tel], input[type=url], textarea, select {
+    width: 100%;
+    padding: 11px 13px;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--r);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { resize: none; min-height: 90px; line-height: 1.5; }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6a67'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+  .field { margin-bottom: 14px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 14px 0 10px;
+    border-top: 0.5px solid var(--border);
+    margin-top: 6px;
+  }
+
+  /* Badge scan area */
+  .scan-area {
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--r-lg);
+    padding: 28px 18px;
+    text-align: center;
+    background: var(--bg2);
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .scan-area:active { background: var(--bg3); border-color: var(--accent); }
+  .scan-icon { width: 36px; height: 36px; margin: 0 auto 10px; opacity: 0.5; }
+  .scan-area h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .scan-area p { font-size: 13px; color: var(--text2); }
+
+  /* Badge preview card */
+  .badge-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 13px 15px;
+    margin-bottom: 16px;
+  }
+  .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--info-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--info);
+    flex-shrink: 0;
+  }
+  .ai-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: var(--success-bg);
+    color: var(--success);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .or-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    color: var(--text3);
+    font-size: 12px;
+  }
+  .or-row::before, .or-row::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+
+  /* Scanning indicator */
+  .scanning {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text2);
+    padding: 8px 0 14px;
+  }
+  .dot-pulse {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--info);
+    animation: dp 1s ease-in-out infinite;
+  }
+  @keyframes dp { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+
+  /* Toggle pills */
+  .toggle-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .toggle {
+    padding: 7px 14px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .toggle.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .toggle:active { transform: scale(0.97); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 20px;
+    border-radius: var(--r);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent);
+    flex: 1;
+  }
+  .btn-sm { padding: 8px 14px; font-size: 13px; }
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    padding-bottom: 40px;
+  }
+
+  /* UTM output */
+  .utm-box {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r);
+    padding: 13px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    word-break: break-all;
+    line-height: 1.7;
+    color: var(--text2);
+  }
+  .utm-box .p { color: var(--info); }
+  .utm-box .v { color: var(--success); }
+
+  /* Leads list */
+  .lead-item {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 13px 15px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .lead-name { font-size: 14px; font-weight: 600; }
+  .lead-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .pill {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 99px;
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+  }
+  .pill-warm { background: var(--warm-bg); color: var(--warm); }
+  .pill-cold { background: var(--cold-bg); color: var(--cold); }
+  .empty { text-align: center; padding: 48px 20px; color: var(--text3); font-size: 14px; }
+
+  /* Stats row */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--bg2);
+    border-radius: var(--r);
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
+  .stat-label { font-size: 10px; color: var(--text2); margin-top: 2px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--accent);
+    color: var(--accent-text);
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 999;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .api-warning {
+    background: var(--warm-bg);
+    border: 0.5px solid var(--warm);
+    border-radius: var(--r);
+    padding: 10px 13px;
+    font-size: 12px;
+    color: var(--warm);
+    margin-bottom: 14px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">LeadScan</div>
+    <div class="header-sub" id="event-label">No event set</div>
+  </div>
+  <button class="btn btn-sm" onclick="showSettings()">⚙ Settings</button>
+</div>
+
+<div class="tabbar">
+  <button class="tab active" onclick="switchTab('scan')">Scan</button>
+  <button class="tab" onclick="switchTab('utm')">UTM</button>
+  <button class="tab" onclick="switchTab('leads')">Leads <span id="tab-count" style="font-size:10px;background:var(--bg3);padding:1px 6px;border-radius:99px;margin-left:3px;">0</span></button>
+</div>
+
+<div class="content">
+
+  <!-- SCAN PANEL -->
+  <div class="panel active" id="panel-scan">
+    <div id="api-warn" class="api-warning">
+      ⚠ No API key set. Add your Anthropic API key in Settings to enable AI badge scanning.
+    </div>
+
+    <div class="scan-area" onclick="triggerScan()">
+      <svg class="scan-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <rect x="25" y="2" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <rect x="2" y="25" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <line x1="2" y1="18" x2="34" y2="18" stroke="currentColor" stroke-width="1.8" stroke-dasharray="3 2.5"/>
+        <line x1="18" y1="2" x2="18" y2="34" stroke="currentColor" stroke-width="1.8" stroke-dasharray="3 2.5"/>
+      </svg>
+      <h3>Scan badge</h3>
+      <p>Take a photo or upload an image</p>
+    </div>
+    <input type="file" id="badge-file" accept="image/*" capture="environment" style="display:none;" onchange="handleScan(event)"/>
+
+    <div class="scanning" id="scanning-indicator">
+      <div class="dot-pulse"></div>
+      <span>Reading badge with AI…</span>
+    </div>
+
+    <div id="badge-result" style="display:none;" class="badge-card">
+      <div class="avatar" id="badge-avatar">?</div>
+      <div id="badge-info" style="flex:1;min-width:0;"></div>
+    </div>
+
+    <div class="or-row">or enter manually</div>
+
+    <div class="row">
+      <div class="field">
+        <label>First name</label>
+        <input type="text" id="f-first" placeholder="Jane" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>Last name</label>
+        <input type="text" id="f-last" placeholder="Smith" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Company</label>
+      <input type="text" id="f-company" placeholder="Acme Health Systems" autocomplete="off"/>
+    </div>
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="f-title" placeholder="VP of Operations" autocomplete="off"/>
+    </div>
+
+    <div class="section-title">Contact details</div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="f-email" placeholder="jane@acme.com" autocomplete="off"/>
+    </div>
+    <div class="field">
+      <label>Phone</label>
+      <input type="tel" id="f-phone" placeholder="+1 (555) 000-0000" autocomplete="off"/>
+    </div>
+    <div class="field">
+      <label>LinkedIn</label>
+      <input type="text" id="f-linkedin" placeholder="linkedin.com/in/janesmith" autocomplete="off"/>
+    </div>
+
+    <div class="section-title">Lead qualification</div>
+    <div class="field">
+      <label>Source</label>
+      <div class="toggle-group">
+        <button class="toggle active" id="lt-scan" onclick="setToggle('leadtype','scan',this)">Badge scan</button>
+        <button class="toggle" id="lt-list" onclick="setToggle('leadtype','list',this)">Event list</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>Speaker sponsored?</label>
+      <div class="toggle-group">
+        <button class="toggle active" id="sp-no" onclick="setToggle('sponsored','no',this)">No</button>
+        <button class="toggle" id="sp-yes" onclick="setToggle('sponsored','yes',this)">Yes — warm lead</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:14px;">
+      <label>Notes</label>
+      <textarea id="f-notes" placeholder="Conversation context, follow-up priority, interests…"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-sm" onclick="clearForm()">Clear</button>
+      <button class="btn btn-primary" onclick="saveLead()">Save lead →</button>
+    </div>
+  </div>
+
+  <!-- UTM PANEL -->
+  <div class="panel" id="panel-utm">
+    <div class="field">
+      <label>Base URL</label>
+      <input type="url" id="utm-base" placeholder="https://yoursite.com/page" oninput="buildUTM()"/>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Event name</label>
+        <input type="text" id="utm-event" placeholder="HIMSS25" oninput="buildUTM()"/>
+      </div>
+      <div class="field">
+        <label>Year</label>
+        <input type="text" id="utm-year" placeholder="2025" oninput="buildUTM()"/>
+      </div>
+    </div>
+
+    <div class="section-title">Lead source</div>
+    <div class="field">
+      <label>Source type</label>
+      <div class="toggle-group">
+        <button class="toggle active" id="us-scan" onclick="setUTM('source','badge_scan',this)">Badge scan</button>
+        <button class="toggle" id="us-list" onclick="setUTM('source','event_list',this)">Event list</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>Speaker sponsored?</label>
+      <div class="toggle-group">
+        <button class="toggle active" id="uss-no" onclick="setUTM('sponsored','false',this)">No</button>
+        <button class="toggle" id="uss-yes" onclick="setUTM('sponsored','true',this)">Yes</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <div class="field">
+        <label>Medium</label>
+        <input type="text" id="utm-medium" value="event" oninput="buildUTM()"/>
+      </div>
+      <div class="field">
+        <label>Campaign</label>
+        <input type="text" id="utm-campaign" placeholder="auto" oninput="buildUTM()"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Content tag (optional)</label>
+      <input type="text" id="utm-content" placeholder="booth, keynote, demo…" oninput="buildUTM()"/>
+    </div>
+
+    <div id="utm-preview" style="display:none;">
+      <div class="section-title">Generated URL</div>
+      <div class="utm-box" id="utm-output"></div>
+      <div class="actions" style="padding-bottom:40px;">
+        <button class="btn btn-primary" onclick="copyUTM()">Copy URL</button>
+      </div>
+    </div>
+    <div style="padding-bottom:40px;"></div>
+  </div>
+
+  <!-- LEADS PANEL -->
+  <div class="panel" id="panel-leads">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="stat-warm" style="color:var(--warm);">0</div>
+        <div class="stat-label">Warm</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="stat-cold">0</div>
+        <div class="stat-label">Cold</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="btn btn-sm" style="flex:1;" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-sm" style="flex:1;" onclick="clearAllLeads()">Clear all</button>
+    </div>
+    <div id="leads-list"></div>
+    <div style="padding-bottom:40px;"></div>
+  </div>
+
+</div>
+
+<!-- Settings modal -->
+<div id="settings-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-end;" onclick="closeSettings(event)">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;padding:24px 18px 40px;width:100%;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <span style="font-size:17px;font-weight:600;">Settings</span>
+      <button class="btn btn-sm" onclick="closeSettings()">Done</button>
+    </div>
+    <div class="field">
+      <label>Event name</label>
+      <input type="text" id="s-event" placeholder="HIMSS 2025" oninput="saveSettings()"/>
+    </div>
+    <div class="field">
+      <label>Anthropic API key</label>
+      <input type="password" id="s-apikey" placeholder="sk-ant-…" oninput="saveSettings()"/>
+      <p style="font-size:11px;color:var(--text3);margin-top:5px;">Required for AI badge scanning. Get your key at console.anthropic.com. Stored only on this device.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// State
+let state = {
+  leadtype: 'scan',
+  sponsored: 'no',
+  utm: { source: 'badge_scan', sponsored: 'false' }
+};
+
+// Persist leads in localStorage
+let leads = JSON.parse(localStorage.getItem('ls_leads') || '[]');
+let settings = JSON.parse(localStorage.getItem('ls_settings') || '{}');
+
+function saveLeadsStorage() { localStorage.setItem('ls_leads', JSON.stringify(leads)); }
+
+// Init
+window.addEventListener('load', () => {
+  if (settings.event) { $('s-event').value = settings.event; updateEventLabel(); }
+  if (settings.apikey) { $('s-apikey').value = settings.apikey; }
+  checkAPIWarn();
+  renderLeads();
+  updateStats();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+});
+
+function updateEventLabel() {
+  $('event-label').textContent = settings.event || 'No event set';
+}
+
+function saveSettings() {
+  settings.event = $('s-event').value.trim();
+  settings.apikey = $('s-apikey').value.trim();
+  localStorage.setItem('ls_settings', JSON.stringify(settings));
+  updateEventLabel();
+  checkAPIWarn();
+}
+
+function checkAPIWarn() {
+  $('api-warn').style.display = settings.apikey ? 'none' : 'block';
+}
+
+function showSettings() { $('settings-overlay').style.display = 'flex'; }
+function closeSettings(e) { if (!e || e.target === $('settings-overlay')) $('settings-overlay').style.display = 'none'; }
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['scan','utm','leads'][i] === id));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  $('panel-' + id).classList.add('active');
+}
+
+function setToggle(group, val, el) {
+  state[group] = val;
+  el.closest('.toggle-group').querySelectorAll('.toggle').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setUTM(param, val, el) {
+  state.utm[param] = val;
+  el.closest('.toggle-group').querySelectorAll('.toggle').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  buildUTM();
+}
+
+// Badge scanning
+function triggerScan() { $('badge-file').click(); }
+
+async function handleScan(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!settings.apikey) { toast('Add your API key in Settings first'); return; }
+  $('scanning-indicator').style.display = 'flex';
+  $('badge-result').style.display = 'none';
+
+  const base64 = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': settings.apikey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: file.type, data: base64 } },
+            { type: 'text', text: 'Extract name, title, and company from this event badge. Respond ONLY with JSON, no markdown: {"firstname":"","lastname":"","title":"","company":""}' }
+          ]
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    const p = JSON.parse(text);
+    $('f-first').value = p.firstname || '';
+    $('f-last').value = p.lastname || '';
+    $('f-title').value = p.title || '';
+    $('f-company').value = p.company || '';
+    showBadgeCard(p, true);
+  } catch(err) {
+    toast('Could not read badge — please fill in manually');
+  }
+  $('scanning-indicator').style.display = 'none';
+  $('badge-file').value = '';
+}
+
+function showBadgeCard(d, ai) {
+  const initials = ((d.firstname||'')[0]||(d.lastname||'')[0]||'?').toUpperCase() +
+                   ((d.lastname||'')[0]||'').toUpperCase();
+  $('badge-avatar').textContent = initials;
+  $('badge-info').innerHTML = `
+    <div style="font-size:14px;font-weight:600;">${d.firstname||''} ${d.lastname||''}${ai ? ' <span class="ai-chip">✓ AI</span>' : ''}</div>
+    <div style="font-size:12px;color:var(--text2);margin-top:2px;">${[d.title,d.company].filter(Boolean).join(' · ')}</div>`;
+  $('badge-result').style.display = 'flex';
+}
+
+// Save lead
+function saveLead() {
+  const fn = $('f-first').value.trim(), ln = $('f-last').value.trim();
+  if (!fn && !ln) { toast('Please enter a name'); return; }
+  const lead = {
+    id: Date.now(),
+    firstname: fn, lastname: ln,
+    company: $('f-company').value.trim(),
+    title: $('f-title').value.trim(),
+    email: $('f-email').value.trim(),
+    phone: $('f-phone').value.trim(),
+    linkedin: $('f-linkedin').value.trim(),
+    notes: $('f-notes').value.trim(),
+    leadtype: state.leadtype,
+    sponsored: state.sponsored,
+    warm: state.sponsored === 'yes',
+    event: settings.event || '',
+    time: new Date().toLocaleString()
+  };
+  leads.unshift(lead);
+  saveLeadsStorage();
+  renderLeads();
+  updateStats();
+  clearForm();
+  toast('Lead saved');
+}
+
+function clearForm() {
+  ['f-first','f-last','f-company','f-title','f-email','f-phone','f-linkedin','f-notes']
+    .forEach(id => $(id).value = '');
+  $('badge-result').style.display = 'none';
+  state.leadtype = 'scan'; state.sponsored = 'no';
+  $('panel-scan').querySelectorAll('.toggle-group').forEach(g => {
+    g.querySelectorAll('.toggle').forEach(t => t.classList.remove('active'));
+    g.querySelector('.toggle').classList.add('active');
+  });
+}
+
+function renderLeads() {
+  const el = $('leads-list');
+  if (!leads.length) { el.innerHTML = '<div class="empty">No leads yet.<br/>Scan a badge to get started.</div>'; return; }
+  el.innerHTML = leads.map(l => `
+    <div class="lead-item">
+      <div style="min-width:0;">
+        <div class="lead-name">${l.firstname} ${l.lastname}</div>
+        <div class="lead-meta">${[l.title, l.company].filter(Boolean).join(' · ')}</div>
+        ${l.email ? `<div class="lead-meta">${l.email}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
+        <span class="pill ${l.warm ? 'pill-warm' : 'pill-cold'}">${l.warm ? 'warm' : 'cold'}</span>
+        <span style="font-size:10px;color:var(--text3);">${l.leadtype}</span>
+      </div>
+    </div>`).join('');
+  $('tab-count').textContent = leads.length;
+}
+
+function updateStats() {
+  const warm = leads.filter(l => l.warm).length;
+  $('stat-total').textContent = leads.length;
+  $('stat-warm').textContent = warm;
+  $('stat-cold').textContent = leads.length - warm;
+  $('tab-count').textContent = leads.length;
+}
+
+function clearAllLeads() {
+  if (!leads.length) return;
+  if (!confirm('Clear all ' + leads.length + ' leads? This cannot be undone.')) return;
+  leads = [];
+  saveLeadsStorage();
+  renderLeads();
+  updateStats();
+}
+
+// UTM builder
+function buildUTM() {
+  const base = $('utm-base').value.trim();
+  if (!base) { $('utm-preview').style.display = 'none'; return; }
+  const event = $('utm-event').value.trim();
+  const year = $('utm-year').value.trim();
+  const medium = $('utm-medium').value.trim() || 'event';
+  let campaign = $('utm-campaign').value.trim();
+  if (!campaign && event) campaign = (event + (year ? '_' + year : '')).toLowerCase().replace(/\s+/g,'_');
+  const content = $('utm-content').value.trim();
+
+  const p = new URLSearchParams();
+  p.set('utm_source', event ? event.toLowerCase().replace(/\s+/g,'_') : 'event');
+  p.set('utm_medium', medium);
+  if (campaign) p.set('utm_campaign', campaign);
+  p.set('utm_term', state.utm.source);
+  const sponsored = state.utm.sponsored === 'true';
+  if (sponsored) p.set('utm_content', 'sponsored' + (content ? '_' + content : ''));
+  else if (content) p.set('utm_content', content);
+
+  const full = base + (base.includes('?') ? '&' : '?') + p.toString();
+  const [baseP, qs] = full.split('?');
+  const highlighted = qs.split('&').map(pair => {
+    const [k, v] = pair.split('=');
+    return `<span class="p">${k}</span>=<span class="v">${v}</span>`;
+  }).join('&');
+  $('utm-output').innerHTML = baseP + '?' + highlighted;
+  $('utm-output').dataset.raw = full;
+  $('utm-preview').style.display = 'block';
+}
+
+function copyUTM() {
+  const raw = $('utm-output').dataset.raw || '';
+  if (navigator.clipboard) navigator.clipboard.writeText(raw);
+  toast('URL copied!');
+}
+
+// CSV export
+function exportCSV() {
+  if (!leads.length) { toast('No leads to export'); return; }
+  const cols = ['firstname','lastname','company','title','email','phone','linkedin','leadtype','sponsored','warm','event','notes','time'];
+  const csv = [cols.join(','), ...leads.map(l =>
+    cols.map(c => '"' + String(l[c]||'').replace(/"/g,'""') + '"').join(',')
+  )].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'leads_' + (settings.event || 'event').replace(/\s/g,'_') + '.csv';
+  a.click();
+  toast('CSV downloaded');
+}
+
+// Toast notification
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
