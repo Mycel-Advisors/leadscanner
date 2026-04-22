@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="LeadScan"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>LeadScan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@400;500&family=DM+Mono&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#ffffff; --bg2:#f7f6f4; --bg3:#efede9;
+  --text:#0a0a0a; --text2:#6e6c68; --text3:#b0ada8;
+  --border:rgba(0,0,0,0.09); --border2:rgba(0,0,0,0.16);
+  --accent:#0a0a0a; --accent-fg:#ffffff;
+  --warm:#92400e; --warm-bg:#fef3c7;
+  --cold:#4b5563; --cold-bg:#f3f4f6;
+  --info:#1d4ed8; --info-bg:#eff6ff;
+  --success:#166534; --success-bg:#dcfce7;
+  --danger:#991b1b; --danger-bg:#fef2f2;
+  --r:10px; --rl:16px;
+  --font-head:'Syne',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#111110; --bg2:#1a1917; --bg3:#232220;
+    --text:#f0ede8; --text2:#908e89; --text3:#504e4a;
+    --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.15);
+    --accent:#f0ede8; --accent-fg:#111110;
+    --warm:#fbbf24; --warm-bg:#1c1505;
+    --cold:#9ca3af; --cold-bg:#1f2937;
+    --info:#60a5fa; --info-bg:#0f1e33;
+    --success:#4ade80; --success-bg:#052010;
+    --danger:#f87171; --danger-bg:#1c0505;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font-body);font-size:15px;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100dvh}
+
+/* ── Screens ── */
+.screen{display:none;flex-direction:column;height:100dvh}
+.screen.active{display:flex}
+
+/* ── Login ── */
+.login-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;gap:32px}
+.login-logo{font-family:var(--font-head);font-size:36px;font-weight:700;letter-spacing:-0.03em}
+.login-logo span{color:var(--text3)}
+.login-card{width:100%;max-width:360px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rl);padding:24px}
+.login-card h2{font-family:var(--font-head);font-size:18px;font-weight:600;margin-bottom:6px}
+.login-card p{font-size:13px;color:var(--text2);margin-bottom:20px}
+.login-type{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.type-btn{padding:10px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg);font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:center}
+.type-btn.active{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+
+/* ── Header ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px 11px;border-bottom:0.5px solid var(--border);flex-shrink:0;gap:10px}
+.hdr-left{min-width:0}
+.hdr-title{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:-0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-sub{font-size:11px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-right{display:flex;gap:6px;flex-shrink:0}
+
+/* ── Tabs ── */
+.tabbar{display:flex;border-bottom:0.5px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:11px 6px;font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}
+
+/* ── Scrollable content ── */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.panel{display:none;padding:16px}
+.panel.active{display:block}
+
+/* ── Form ── */
+label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+input[type=text],input[type=email],input[type=tel],input[type=url],input[type=password],textarea,select{
+  width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--r);
+  font-family:var(--font-body);font-size:15px;background:var(--bg);color:var(--text);
+  outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:none;min-height:82px;line-height:1.5}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236e6c68'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.field{margin-bottom:13px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sec{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:14px 0 9px;border-top:0.5px solid var(--border);margin-top:4px}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--border2);background:transparent;color:var(--text);font-family:var(--font-body);transition:all .15s;-webkit-user-select:none;user-select:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);flex:1}
+.btn-primary:active{opacity:.85}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-danger{color:var(--danger);border-color:var(--danger)}
+.actions{display:flex;gap:8px;margin-top:18px;padding-bottom:44px}
+
+/* ── Scan area ── */
+.scan-area{border:1.5px dashed var(--border2);border-radius:var(--rl);padding:26px 16px;text-align:center;background:var(--bg2);cursor:pointer;margin-bottom:14px;transition:all .15s;-webkit-user-select:none;user-select:none}
+.scan-area:active{background:var(--bg3);border-color:var(--accent)}
+.scan-icon{width:34px;height:34px;margin:0 auto 10px;opacity:.45}
+.scan-area h3{font-family:var(--font-head);font-size:15px;font-weight:600;margin-bottom:3px}
+.scan-area p{font-size:12px;color:var(--text2)}
+.badge-card{display:flex;align-items:center;gap:11px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:12px 14px;margin-bottom:14px}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--info-bg);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--info);flex-shrink:0;font-family:var(--font-head)}
+.ai-chip{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--success-bg);color:var(--success);margin-left:5px;vertical-align:middle}
+.or-row{display:flex;align-items:center;gap:9px;margin:12px 0;color:var(--text3);font-size:12px}
+.or-row::before,.or-row::after{content:'';flex:1;height:.5px;background:var(--border)}
+.scanning{display:none;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:6px 0 12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--info);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.8)}}
+
+/* ── Toggles ── */
+.tg-group{display:flex;gap:6px;flex-wrap:wrap}
+.tg{padding:7px 13px;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font-body);transition:all .15s;-webkit-user-select:none;user-select:none}
+.tg.active{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.tg:active{transform:scale(.97)}
+
+/* ── Lead items ── */
+.lead-item{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:12px 14px;margin-bottom:7px}
+.lead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.lead-name{font-family:var(--font-head);font-size:14px;font-weight:600}
+.lead-meta{font-size:12px;color:var(--text2);margin-top:2px}
+.pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;flex-shrink:0;letter-spacing:.03em}
+.pill-warm{background:var(--warm-bg);color:var(--warm)}
+.pill-cold{background:var(--cold-bg);color:var(--cold)}
+.pill-info{background:var(--info-bg);color:var(--info)}
+
+/* ── Stats ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
+.stat{background:var(--bg2);border-radius:var(--r);padding:11px 8px;text-align:center}
+.stat-n{font-family:var(--font-head);font-size:24px;font-weight:700;letter-spacing:-.03em}
+.stat-l{font-size:10px;color:var(--text2);margin-top:2px;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+
+/* ── Event cards (admin) ── */
+.event-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:13px 15px;margin-bottom:8px}
+.event-code{font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--info);background:var(--info-bg);padding:2px 8px;border-radius:6px;display:inline-block;margin-bottom:6px}
+.event-name{font-family:var(--font-head);font-size:14px;font-weight:600}
+.event-meta{font-size:12px;color:var(--text2);margin-top:2px}
+.event-actions{display:flex;gap:6px;margin-top:10px}
+
+/* ── UTM preview ── */
+.utm-box{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 13px;font-family:var(--font-mono);font-size:11px;word-break:break-all;line-height:1.7;color:var(--text2)}
+.utm-box .p{color:var(--info)} .utm-box .v{color:var(--success)}
+
+/* ── Sync status ── */
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block;margin-right:4px}
+.sync-dot.pending{background:var(--warm)}
+.sync-dot.error{background:var(--danger)}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:44px 20px;color:var(--text3);font-size:14px;line-height:1.6}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:var(--accent-fg);padding:10px 20px;border-radius:99px;font-size:13px;font-weight:500;z-index:999;transition:transform .25s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── Overlay modal ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-end}
+.overlay.open{display:flex}
+.sheet{background:var(--bg);border-radius:20px 20px 0 0;padding:22px 18px 44px;width:100%;max-height:88vh;overflow-y:auto}
+.sheet-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.sheet-hdr h2{font-family:var(--font-head);font-size:17px;font-weight:700}
+
+.warn-bar{background:var(--warm-bg);border:0.5px solid var(--warm);border-radius:var(--r);padding:9px 12px;font-size:12px;color:var(--warm);margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     SCREEN 1 — LOGIN
+════════════════════════════════════════ -->
+<div class="screen active" id="screen-login">
+  <div class="login-wrap">
+    <div class="login-logo">Lead<span>Scan</span></div>
+    <div class="login-card">
+      <h2>Welcome</h2>
+      <p>Sign in as an admin or enter your event code to start scanning.</p>
+      <div class="login-type">
+        <button class="type-btn active" id="lt-vendor" onclick="setLoginType('vendor')">Event code</button>
+        <button class="type-btn" id="lt-admin" onclick="setLoginType('admin')">Admin</button>
+      </div>
+      <div id="vendor-login">
+        <div class="field">
+          <label>Event code</label>
+          <input type="text" id="l-code" placeholder="e.g. HIMSS25-ZWX" style="text-transform:uppercase;letter-spacing:.06em;" maxlength="20"/>
+        </div>
+        <div id="vendor-error" style="display:none;" class="warn-bar"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="vendorLogin()">Enter event →</button>
+      </div>
+      <div id="admin-login" style="display:none;">
+        <div class="field">
+          <label>Admin password</label>
+          <input type="password" id="l-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"/>
+        </div>
+        <div id="admin-error" style="display:none;" class="warn-bar"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="adminLogin()">Sign in →</button>
+      </div>
+    </div>
+    <div id="login-spinner" style="display:none;color:var(--text2);font-size:13px;">Checking…</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN 2 — VENDOR SCANNER
+════════════════════════════════════════ -->
+<div class="screen" id="screen-vendor">
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-title" id="v-title">Event</div>
+      <div class="hdr-sub" id="v-sub">Loading…</div>
+    </div>
+    <div class="hdr-right">
+      <button class="btn btn-sm" onclick="openExport()">Export</button>
+      <button class="btn btn-sm" onclick="logOut()">Exit</button>
+    </div>
+  </div>
+  <div class="tabbar">
+    <button class="tab active" onclick="vTab('scan')">Scan</button>
+    <button class="tab" onclick="vTab('leads')">Leads <span id="v-count" style="font-size:10px;background:var(--bg3);padding:1px 6px;border-radius:99px;margin-left:3px;">0</span></button>
+  </div>
+  <div class="content">
+
+    <!-- Scan tab -->
+    <div class="panel active" id="vp-scan">
+      <div id="v-api-warn" class="warn-bar" style="display:none;">⚠ AI scanning unavailable for this event. Fill in manually.</div>
+      <div class="scan-area" onclick="triggerScan()">
+        <svg class="scan-icon" viewBox="0 0 34 34" fill="none">
+          <rect x="2" y="2" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/>
+          <rect x="23" y="2" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/>
+          <rect x="2" y="23" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/>
+          <line x1="2" y1="17" x2="32" y2="17" stroke="currentColor" stroke-width="1.8" stroke-dasharray="3 2.5"/>
+          <line x1="17" y1="2" x2="17" y2="32" stroke="currentColor" stroke-width="1.8" stroke-dasharray="3 2.5"/>
+        </svg>
+        <h3>Scan badge</h3>
+        <p>Tap to take a photo or upload</p>
+      </div>
+      <input type="file" id="badge-file" accept="image/*" capture="environment" style="display:none;" onchange="handleScan(event)"/>
+      <div class="scanning" id="scan-indicator"><div class="dot"></div><span>Reading badge with AI…</span></div>
+      <div class="badge-card" id="badge-preview" style="display:none;">
+        <div class="avatar" id="bp-avatar">?</div>
+        <div id="bp-info" style="flex:1;min-width:0;"></div>
+      </div>
+      <div class="or-row">or enter manually</div>
+      <div class="row">
+        <div class="field"><label>First name</label><input type="text" id="f-first" placeholder="Jane" autocomplete="off"/></div>
+        <div class="field"><label>Last name</label><input type="text" id="f-last" placeholder="Smith" autocomplete="off"/></div>
+      </div>
+      <div class="field"><label>Company</label><input type="text" id="f-company" placeholder="Acme Health" autocomplete="off"/></div>
+      <div class="field"><label>Title</label><input type="text" id="f-title" placeholder="VP Operations" autocomplete="off"/></div>
+      <div class="sec">Contact details</div>
+      <div class="field"><label>Email</label><input type="email" id="f-email" placeholder="jane@acme.com" autocomplete="off"/></div>
+      <div class="field"><label>Phone</label><input type="tel" id="f-phone" placeholder="+1 (555) 000-0000" autocomplete="off"/></div>
+      <div class="field"><label>LinkedIn</label><input type="text" id="f-linkedin" placeholder="linkedin.com/in/jane" autocomplete="off"/></div>
+      <div class="sec">Qualification</div>
+      <div class="field">
+        <label>Source</label>
+        <div class="tg-group">
+          <button class="tg active" id="lt-scan" onclick="setTG('leadtype','scan',this)">Badge scan</button>
+          <button class="tg" id="lt-list" onclick="setTG('leadtype','list',this)">Event list</button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>Speaker sponsored?</label>
+        <div class="tg-group">
+          <button class="tg active" id="sp-no" onclick="setTG('sponsored','no',this)">No</button>
+          <button class="tg" id="sp-yes" onclick="setTG('sponsored','yes',this)">Yes — warm lead</button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px;"><label>Notes</label><textarea id="f-notes" placeholder="Conversation notes, follow-up priority…"></textarea></div>
+      <div class="actions">
+        <button class="btn btn-sm" onclick="clearForm()">Clear</button>
+        <button class="btn btn-primary" onclick="saveLead()">Save lead →</button>
+      </div>
+    </div>
+
+    <!-- Leads tab -->
+    <div class="panel" id="vp-leads">
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="vs-total">0</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" id="vs-warm" style="color:var(--warm);">0</div><div class="stat-l">Warm</div></div>
+        <div class="stat"><div class="stat-n" id="vs-cold">0</div><div class="stat-l">Cold</div></div>
+      </div>
+      <div id="v-sync-status" style="font-size:12px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:4px;">
+        <span class="sync-dot" id="sync-dot"></span><span id="sync-msg">Synced</span>
+      </div>
+      <div id="v-leads-list"></div>
+      <div style="padding-bottom:44px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN 3 — ADMIN
+════════════════════════════════════════ -->
+<div class="screen" id="screen-admin">
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-title">LeadScan Admin</div>
+      <div class="hdr-sub" id="a-sub">Loading events…</div>
+    </div>
+    <div class="hdr-right">
+      <button class="btn btn-sm btn-primary" onclick="openEventForm()">+ Event</button>
+      <button class="btn btn-sm" onclick="logOut()">Exit</button>
+    </div>
+  </div>
+  <div class="tabbar">
+    <button class="tab active" onclick="aTab('events')">Events</button>
+    <button class="tab" onclick="aTab('leads')">All leads</button>
+    <button class="tab" onclick="aTab('settings')">Settings</button>
+  </div>
+  <div class="content">
+    <div class="panel active" id="ap-events">
+      <div id="a-events-list"></div>
+      <div style="padding-bottom:44px;"></div>
+    </div>
+    <div class="panel" id="ap-leads">
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="as-total">0</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" id="as-warm" style="color:var(--warm);">0</div><div class="stat-l">Warm</div></div>
+        <div class="stat"><div class="stat-n" id="as-events">0</div><div class="stat-l">Events</div></div>
+      </div>
+      <div style="display:flex;gap:7px;margin-bottom:14px;">
+        <select id="a-filter-event" onchange="renderAdminLeads()" style="flex:1;">
+          <option value="">All events</option>
+        </select>
+        <button class="btn btn-sm" onclick="exportAdminCSV()">Export CSV</button>
+      </div>
+      <div id="a-leads-list"></div>
+      <div style="padding-bottom:44px;"></div>
+    </div>
+    <div class="panel" id="ap-settings">
+      <div class="field">
+        <label>Script URL (Google Apps Script)</label>
+        <input type="url" id="s-script" placeholder="https://script.google.com/macros/s/…/exec" oninput="saveAppSettings()"/>
+        <p style="font-size:11px;color:var(--text3);margin-top:5px;">Paste your deployed Apps Script web app URL here.</p>
+      </div>
+      <div class="field">
+        <label>Admin password</label>
+        <input type="password" id="s-password" placeholder="••••••••" oninput="saveAppSettings()"/>
+        <p style="font-size:11px;color:var(--text3);margin-top:5px;">Must match ADMIN_PASSWORD in your Apps Script.</p>
+      </div>
+      <div class="field">
+        <label>Anthropic API key (for AI scanning)</label>
+        <input type="password" id="s-apikey" placeholder="sk-ant-…" oninput="saveAppSettings()"/>
+        <p style="font-size:11px;color:var(--text3);margin-top:5px;">Stored only on this device. Per-event key overrides this.</p>
+      </div>
+      <div style="padding-bottom:44px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Event form overlay ── -->
+<div class="overlay" id="overlay-event" onclick="closeOverlay('overlay-event',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-hdr">
+      <h2 id="ef-title">New event</h2>
+      <button class="btn btn-sm" onclick="closeOverlay('overlay-event')">Done</button>
+    </div>
+    <div class="row">
+      <div class="field"><label>Event code</label><input type="text" id="ef-code" placeholder="HIMSS25-ZWX" style="text-transform:uppercase;letter-spacing:.04em;" maxlength="20"/></div>
+      <div class="field"><label>Year</label><input type="text" id="ef-year" placeholder="2025" maxlength="4"/></div>
+    </div>
+    <div class="field"><label>Vendor name</label><input type="text" id="ef-vendor" placeholder="Zimworx"/></div>
+    <div class="field"><label>Event name</label><input type="text" id="ef-event" placeholder="HIMSS Annual Conference"/></div>
+    <div class="sec">CRM integration</div>
+    <div class="row">
+      <div class="field">
+        <label>CRM type</label>
+        <select id="ef-crm">
+          <option value="hubspot">HubSpot</option>
+          <option value="salesforce">Salesforce</option>
+          <option value="other">Other / CSV only</option>
+        </select>
+      </div>
+      <div class="field"><label>Campaign ID</label><input type="text" id="ef-campaign" placeholder="hs_campaign_id or SF ID"/></div>
+    </div>
+    <div class="sec">UTM parameters</div>
+    <div class="field"><label>Base URL</label><input type="url" id="ef-utmbase" placeholder="https://yoursite.com/page" oninput="previewUTM()"/></div>
+    <div class="row">
+      <div class="field"><label>UTM source</label><input type="text" id="ef-utmsource" placeholder="auto from event name" oninput="previewUTM()"/></div>
+      <div class="field"><label>UTM medium</label><input type="text" id="ef-utmmedium" value="event" oninput="previewUTM()"/></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>UTM campaign</label><input type="text" id="ef-utmcampaign" placeholder="auto" oninput="previewUTM()"/></div>
+      <div class="field"><label>UTM content</label><input type="text" id="ef-utmcontent" placeholder="booth, keynote…" oninput="previewUTM()"/></div>
+    </div>
+    <div id="ef-utm-preview" style="display:none;">
+      <p style="font-size:11px;color:var(--text2);margin-bottom:5px;">Preview URL:</p>
+      <div class="utm-box" id="ef-utm-box"></div>
+    </div>
+    <div class="sec">AI scanning</div>
+    <div class="field">
+      <label>Anthropic API key (optional override)</label>
+      <input type="password" id="ef-apikey" placeholder="Leave blank to use global key"/>
+    </div>
+    <div id="ef-error" style="display:none;" class="warn-bar"></div>
+    <div class="actions">
+      <button class="btn" onclick="closeOverlay('overlay-event')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEventForm()">Save event →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Export overlay ── -->
+<div class="overlay" id="overlay-export" onclick="closeOverlay('overlay-export',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-hdr">
+      <h2>Export leads</h2>
+      <button class="btn btn-sm" onclick="closeOverlay('overlay-export')">Close</button>
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:18px;">Choose the format for your CRM import.</p>
+    <div class="field">
+      <label>Format</label>
+      <div class="tg-group">
+        <button class="tg active" id="exp-hs" onclick="setExportFmt('hubspot',this)">HubSpot</button>
+        <button class="tg" id="exp-sf" onclick="setExportFmt('salesforce',this)">Salesforce</button>
+        <button class="tg" id="exp-raw" onclick="setExportFmt('raw',this)">Raw CSV</button>
+      </div>
+    </div>
+    <div id="exp-note" style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.5;"></div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="doExport()">Download CSV →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let APP={
+  settings: JSON.parse(localStorage.getItem('ls_settings2')||'{}'),
+  session: null,   // {type:'vendor'|'admin', event:obj}
+  leads: [],       // vendor local leads
+  adminLeads: [],  // admin all leads
+  adminEvents: [],
+  editingCode: null,
+  exportFmt: 'hubspot',
+  state: { leadtype:'scan', sponsored:'no' }
+};
+
+// ── Persist settings ──────────────────────────────────
+function saveAppSettings(){
+  APP.settings.scriptUrl = $('s-script').value.trim();
+  APP.settings.password  = $('s-password').value.trim();
+  APP.settings.apikey    = $('s-apikey').value.trim();
+  localStorage.setItem('ls_settings2', JSON.stringify(APP.settings));
+  toast('Settings saved');
+}
+
+// ── API calls ─────────────────────────────────────────
+async function api(payload){
+  const url = APP.settings.scriptUrl;
+  if(!url) throw new Error('Script URL not set. Go to Admin → Settings.');
+  const r = await fetch(url, {
+    method:'POST',
+    body: JSON.stringify(payload)
+  });
+  const data = await r.json();
+  if(!data.ok) throw new Error(data.error||'Unknown error');
+  return data;
+}
+
+// ── Login ─────────────────────────────────────────────
+let loginType = 'vendor';
+function setLoginType(t){
+  loginType = t;
+  $('lt-vendor').classList.toggle('active', t==='vendor');
+  $('lt-admin').classList.toggle('active', t==='admin');
+  $('vendor-login').style.display = t==='vendor'?'block':'none';
+  $('admin-login').style.display  = t==='admin'?'block':'none';
+}
+
+async function vendorLogin(){
+  const code = $('l-code').value.trim().toUpperCase();
+  if(!code){ showLoginErr('vendor','Please enter an event code'); return; }
+  if(!APP.settings.scriptUrl){ showLoginErr('vendor','Script URL not configured. Contact your admin.'); return; }
+  $('login-spinner').style.display='block';
+  try {
+    const res = await api({ action:'validateCode', code });
+    APP.session = { type:'vendor', event: res.event };
+    APP.leads = JSON.parse(localStorage.getItem('ls_leads_'+code)||'[]');
+    enterVendorMode();
+  } catch(e){ showLoginErr('vendor', e.message); }
+  $('login-spinner').style.display='none';
+}
+
+async function adminLogin(){
+  const pw = $('l-password').value.trim();
+  if(!pw){ showLoginErr('admin','Please enter your password'); return; }
+  if(!APP.settings.scriptUrl){ showLoginErr('admin','Script URL not configured. Open Settings first.'); return; }
+  $('login-spinner').style.display='block';
+  try {
+    await api({ action:'adminLogin', password: pw });
+    APP.settings.password = pw;
+    localStorage.setItem('ls_settings2', JSON.stringify(APP.settings));
+    APP.session = { type:'admin' };
+    enterAdminMode();
+  } catch(e){ showLoginErr('admin', e.message); }
+  $('login-spinner').style.display='none';
+}
+
+function showLoginErr(t, msg){
+  const el = t==='vendor' ? $('vendor-error') : $('admin-error');
+  el.textContent = msg; el.style.display='block';
+  setTimeout(()=>el.style.display='none', 4000);
+}
+
+function logOut(){
+  APP.session = null;
+  showScreen('login');
+  $('l-code').value=''; $('l-password').value='';
+}
+
+// ── Screen routing ────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('screen-'+id).classList.add('active');
+}
+
+// ── Vendor mode ───────────────────────────────────────
+function enterVendorMode(){
+  const ev = APP.session.event;
+  $('v-title').textContent = ev.vendorName || 'Vendor';
+  $('v-sub').textContent = (ev.eventName||'') + (ev.eventYear?' '+ev.eventYear:'');
+  const hasKey = ev.apiKey || APP.settings.apikey;
+  $('v-api-warn').style.display = hasKey ? 'none' : 'block';
+  renderVendorLeads();
+  updateVendorStats();
+  showScreen('vendor');
+  vTab('scan');
+}
+
+function vTab(id){
+  document.querySelectorAll('#screen-vendor .tab').forEach((t,i)=>t.classList.toggle('active',['scan','leads'][i]===id));
+  $('vp-scan').classList.toggle('active', id==='scan');
+  $('vp-leads').classList.toggle('active', id==='leads');
+}
+
+// ── Badge scanning ────────────────────────────────────
+function triggerScan(){ $('badge-file').click(); }
+async function handleScan(e){
+  const file = e.target.files[0]; if(!file) return;
+  const ev = APP.session.event;
+  const key = ev.apiKey || APP.settings.apikey;
+  if(!key){ toast('No API key — fill in manually'); return; }
+  $('scan-indicator').style.display='flex';
+  $('badge-preview').style.display='none';
+  const b64 = await toBase64(file);
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:400,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
+          {type:'text',text:'Extract name/title/company from this event badge. Respond ONLY with JSON, no markdown: {"firstname":"","lastname":"","title":"","company":""}'}
+        ]}]
+      })
+    });
+    const data = await resp.json();
+    const txt = data.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    const p = JSON.parse(txt);
+    $('f-first').value = p.firstname||'';
+    $('f-last').value  = p.lastname||'';
+    $('f-title').value = p.title||'';
+    $('f-company').value = p.company||'';
+    showBadgePreview(p, true);
+  } catch(err){ toast('Could not read badge — enter manually'); }
+  $('scan-indicator').style.display='none';
+  $('badge-file').value='';
+}
+function toBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); }); }
+function showBadgePreview(d, ai){
+  const i=((d.firstname||'')[0]||(d.lastname||'')[0]||'?').toUpperCase()+((d.lastname||'')[0]||'').toUpperCase();
+  $('bp-avatar').textContent=i;
+  $('bp-info').innerHTML=`<div style="font-size:14px;font-weight:600;">${d.firstname||''} ${d.lastname||''}${ai?'<span class="ai-chip">✓ AI</span>':''}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${[d.title,d.company].filter(Boolean).join(' · ')}</div>`;
+  $('badge-preview').style.display='flex';
+}
+
+// ── Save lead ─────────────────────────────────────────
+async function saveLead(){
+  const fn=$('f-first').value.trim(), ln=$('f-last').value.trim();
+  if(!fn&&!ln){ toast('Please enter a name'); return; }
+  const ev = APP.session.event;
+  const lead = {
+    id: Date.now().toString(),
+    code: ev.code, vendorName: ev.vendorName,
+    eventName: ev.eventName, eventYear: ev.eventYear,
+    campaignId: ev.campaignId, crmType: ev.crmType,
+    firstname:fn, lastname:ln,
+    company:$('f-company').value.trim(), title:$('f-title').value.trim(),
+    email:$('f-email').value.trim(), phone:$('f-phone').value.trim(),
+    linkedin:$('f-linkedin').value.trim(), notes:$('f-notes').value.trim(),
+    leadtype: APP.state.leadtype, sponsored: APP.state.sponsored,
+    warm: APP.state.sponsored==='yes',
+    utmBase: ev.utmBase||'', utmSource: ev.utmSource||'',
+    utmMedium: ev.utmMedium||'event', utmCampaign: ev.utmCampaign||'',
+    submittedAt: new Date().toISOString()
+  };
+  APP.leads.unshift(lead);
+  localStorage.setItem('ls_leads_'+ev.code, JSON.stringify(APP.leads));
+  renderVendorLeads(); updateVendorStats();
+  clearForm();
+  toast('Lead saved');
+  vTab('leads');
+  // Sync to sheet in background
+  setSyncStatus('pending','Syncing…');
+  try {
+    await api({ action:'saveLead', password: APP.settings.password||'', ...lead });
+    setSyncStatus('ok','Synced');
+  } catch(e){ setSyncStatus('error','Sync failed — will retry on export'); }
+}
+
+function setSyncStatus(state, msg){
+  const dot=$('sync-dot'), txt=$('sync-msg');
+  dot.className='sync-dot'+(state==='pending'?' pending':state==='error'?' error':'');
+  txt.textContent=msg;
+}
+
+function clearForm(){
+  ['f-first','f-last','f-company','f-title','f-email','f-phone','f-linkedin','f-notes'].forEach(id=>$(id).value='');
+  $('badge-preview').style.display='none';
+  APP.state.leadtype='scan'; APP.state.sponsored='no';
+  document.querySelectorAll('#vp-scan .tg').forEach(t=>t.classList.remove('active'));
+  $('lt-scan').classList.add('active'); $('sp-no').classList.add('active');
+}
+
+function setTG(group, val, el){
+  APP.state[group]=val;
+  el.closest('.tg-group').querySelectorAll('.tg').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function renderVendorLeads(){
+  const el=$('v-leads-list');
+  if(!APP.leads.length){ el.innerHTML='<div class="empty">No leads yet.<br/>Scan a badge to start.</div>'; return; }
+  el.innerHTML=APP.leads.map(l=>`
+    <div class="lead-item">
+      <div class="lead-row">
+        <div><div class="lead-name">${l.firstname} ${l.lastname}</div>
+        <div class="lead-meta">${[l.title,l.company].filter(Boolean).join(' · ')}</div>
+        ${l.email?`<div class="lead-meta">${l.email}</div>`:''}
+        </div>
+        <span class="pill ${l.warm?'pill-warm':'pill-cold'}">${l.warm?'warm':'cold'}</span>
+      </div>
+    </div>`).join('');
+  $('v-count').textContent=APP.leads.length;
+}
+
+function updateVendorStats(){
+  const w=APP.leads.filter(l=>l.warm).length;
+  $('vs-total').textContent=APP.leads.length;
+  $('vs-warm').textContent=w;
+  $('vs-cold').textContent=APP.leads.length-w;
+  $('v-count').textContent=APP.leads.length;
+}
+
+// ── Export ────────────────────────────────────────────
+function openExport(){ openOverlay('overlay-export'); setExportNote(); }
+function setExportFmt(fmt,el){
+  APP.exportFmt=fmt;
+  document.querySelectorAll('#overlay-export .tg').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  setExportNote();
+}
+function setExportNote(){
+  const notes={
+    hubspot:'Columns match HubSpot contact import fields. The Campaign ID is included for association.',
+    salesforce:'Columns match Salesforce Lead import. Campaign ID maps to CampaignId.',
+    raw:'Full raw export including all fields and UTM data.'
+  };
+  $('exp-note').textContent=notes[APP.exportFmt]||'';
+}
+function doExport(){
+  const leads = APP.leads;
+  if(!leads.length){ toast('No leads to export'); return; }
+  const ev = APP.session.event;
+  let cols, rows;
+  if(APP.exportFmt==='hubspot'){
+    cols=['First Name','Last Name','Email','Phone','Company','Job Title','LinkedIn Bio','Notes','Lead Source','hs_campaign_id'];
+    rows=leads.map(l=>[l.firstname,l.lastname,l.email,l.phone,l.company,l.title,l.linkedin,l.notes,l.warm?'Warm Lead - Event':'Cold Lead - Event',ev.campaignId]);
+  } else if(APP.exportFmt==='salesforce'){
+    cols=['FirstName','LastName','Email','Phone','Company','Title','Description','LeadSource','CampaignId'];
+    rows=leads.map(l=>[l.firstname,l.lastname,l.email,l.phone,l.company,l.title,(l.notes||'')+' | LinkedIn: '+(l.linkedin||''),l.warm?'Web':'Event',ev.campaignId]);
+  } else {
+    cols=['id','firstname','lastname','company','title','email','phone','linkedin','leadtype','sponsored','warm','campaignId','crmType','notes','submittedAt'];
+    rows=leads.map(l=>cols.map(c=>l[c]||''));
+  }
+  downloadCSV(cols, rows, `leads_${ev.code}_${APP.exportFmt}`);
+  closeOverlay('overlay-export');
+}
+
+function exportAdminCSV(){
+  const leads = getFilteredAdminLeads();
+  if(!leads.length){ toast('No leads'); return; }
+  const cols=['firstname','lastname','company','title','email','phone','linkedin','leadtype','warm','sponsored','campaignId','crmType','vendorName','eventName','eventYear','notes','submittedAt'];
+  const rows=leads.map(l=>cols.map(c=>l[c]||''));
+  downloadCSV(cols, rows, 'admin_all_leads');
+}
+
+function downloadCSV(cols, rows, name){
+  const csv=[cols, ...rows].map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=name+'.csv'; a.click();
+  toast('CSV downloaded');
+}
+
+// ── Admin mode ────────────────────────────────────────
+function enterAdminMode(){
+  // Load settings into fields
+  if(APP.settings.scriptUrl) $('s-script').value=APP.settings.scriptUrl;
+  if(APP.settings.password)  $('s-password').value=APP.settings.password;
+  if(APP.settings.apikey)    $('s-apikey').value=APP.settings.apikey;
+  showScreen('admin');
+  aTab('events');
+  loadAdminEvents();
+}
+
+function aTab(id){
+  document.querySelectorAll('#screen-admin .tab').forEach((t,i)=>t.classList.toggle('active',['events','leads','settings'][i]===id));
+  ['ap-events','ap-leads','ap-settings'].forEach(p=>$(p).classList.remove('active'));
+  $('ap-'+id).classList.add('active');
+  if(id==='leads') loadAdminLeads();
+}
+
+async function loadAdminEvents(){
+  try {
+    const res = await api({ action:'getEvents', password: APP.settings.password });
+    APP.adminEvents = res.events || [];
+    renderAdminEvents();
+    $('a-sub').textContent = APP.adminEvents.length+' event'+(APP.adminEvents.length!==1?'s':'')+' configured';
+  } catch(e){ $('a-sub').textContent='Error loading — check settings'; }
+}
+
+function renderAdminEvents(){
+  const el=$('a-events-list');
+  if(!APP.adminEvents.length){ el.innerHTML='<div class="empty">No events yet.<br/>Tap + Event to create one.</div>'; return; }
+  el.innerHTML=APP.adminEvents.map(ev=>`
+    <div class="event-card">
+      <span class="event-code">${ev.code}</span>
+      <div class="event-name">${ev.vendorName} · ${ev.eventName} ${ev.eventYear||''}</div>
+      <div class="event-meta">${ev.crmType?.toUpperCase()||'CSV'} · Campaign: ${ev.campaignId||'—'}</div>
+      <div class="event-actions">
+        <button class="btn btn-sm" onclick="editEvent('${ev.code}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteEvent('${ev.code}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+async function loadAdminLeads(){
+  try {
+    const res = await api({ action:'getLeads', password: APP.settings.password });
+    APP.adminLeads = res.leads||[];
+    // Populate filter
+    const evts=[...new Set(APP.adminLeads.map(l=>l.eventName).filter(Boolean))];
+    $('a-filter-event').innerHTML='<option value="">All events</option>'+evts.map(e=>`<option>${e}</option>`).join('');
+    renderAdminLeads();
+  } catch(e){ toast('Could not load leads: '+e.message); }
+}
+
+function getFilteredAdminLeads(){
+  const f=$('a-filter-event')?.value||'';
+  return f ? APP.adminLeads.filter(l=>l.eventName===f) : APP.adminLeads;
+}
+
+function renderAdminLeads(){
+  const leads=getFilteredAdminLeads();
+  const w=leads.filter(l=>l.warm==='TRUE'||l.warm===true).length;
+  const evts=new Set(leads.map(l=>l.eventName));
+  $('as-total').textContent=leads.length;
+  $('as-warm').textContent=w;
+  $('as-events').textContent=evts.size;
+  const el=$('a-leads-list');
+  if(!leads.length){ el.innerHTML='<div class="empty">No leads yet.</div>'; return; }
+  el.innerHTML=leads.map(l=>`
+    <div class="lead-item">
+      <div class="lead-row">
+        <div><div class="lead-name">${l.firstname||''} ${l.lastname||''}</div>
+        <div class="lead-meta">${[l.title,l.company].filter(Boolean).join(' · ')}</div>
+        <div class="lead-meta" style="color:var(--text3);">${l.vendorName||''} · ${l.eventName||''}</div></div>
+        <span class="pill ${(l.warm==='TRUE'||l.warm===true)?'pill-warm':'pill-cold'}">${(l.warm==='TRUE'||l.warm===true)?'warm':'cold'}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── Event form ────────────────────────────────────────
+function openEventForm(){ APP.editingCode=null; $('ef-title').textContent='New event'; clearEventForm(); openOverlay('overlay-event'); }
+function editEvent(code){
+  const ev=APP.adminEvents.find(e=>e.code===code);
+  if(!ev) return;
+  APP.editingCode=code;
+  $('ef-title').textContent='Edit event';
+  $('ef-code').value=ev.code||''; $('ef-year').value=ev.eventYear||'';
+  $('ef-vendor').value=ev.vendorName||''; $('ef-event').value=ev.eventName||'';
+  $('ef-crm').value=ev.crmType||'hubspot'; $('ef-campaign').value=ev.campaignId||'';
+  $('ef-utmbase').value=ev.utmBase||''; $('ef-utmsource').value=ev.utmSource||'';
+  $('ef-utmmedium').value=ev.utmMedium||'event'; $('ef-utmcampaign').value=ev.utmCampaign||'';
+  $('ef-utmcontent').value=ev.utmContent||''; $('ef-apikey').value='';
+  previewUTM(); openOverlay('overlay-event');
+}
+function clearEventForm(){
+  ['ef-code','ef-year','ef-vendor','ef-event','ef-campaign','ef-utmbase','ef-utmsource','ef-utmcampaign','ef-utmcontent','ef-apikey'].forEach(id=>$(id).value='');
+  $('ef-utmmedium').value='event'; $('ef-crm').value='hubspot';
+  $('ef-utm-preview').style.display='none'; $('ef-error').style.display='none';
+}
+async function submitEventForm(){
+  const code=$('ef-code').value.trim().toUpperCase();
+  const vendor=$('ef-vendor').value.trim();
+  const event=$('ef-event').value.trim();
+  if(!code||!vendor||!event){ showEFError('Code, vendor, and event name are required'); return; }
+  try {
+    await api({
+      action:'saveEvent', password: APP.settings.password,
+      code, vendorName:vendor, eventName:event, eventYear:$('ef-year').value.trim(),
+      campaignId:$('ef-campaign').value.trim(), crmType:$('ef-crm').value,
+      utmBase:$('ef-utmbase').value.trim(), utmSource:$('ef-utmsource').value.trim()||code.toLowerCase().replace(/[^a-z0-9]/g,'_'),
+      utmMedium:$('ef-utmmedium').value.trim()||'event',
+      utmCampaign:$('ef-utmcampaign').value.trim()||(event+'_'+($('ef-year').value.trim()||'')).toLowerCase().replace(/\s+/g,'_'),
+      utmContent:$('ef-utmcontent').value.trim(),
+      apiKey:$('ef-apikey').value.trim(),
+      editing: APP.editingCode||undefined
+    });
+    closeOverlay('overlay-event');
+    await loadAdminEvents();
+    toast('Event saved');
+  } catch(e){ showEFError(e.message); }
+}
+async function deleteEvent(code){
+  if(!confirm('Delete event '+code+'? This will not delete associated leads.')) return;
+  try { await api({action:'deleteEvent',password:APP.settings.password,code}); await loadAdminEvents(); toast('Deleted'); }
+  catch(e){ toast('Error: '+e.message); }
+}
+function showEFError(msg){ $('ef-error').textContent=msg; $('ef-error').style.display='block'; }
+function previewUTM(){
+  const base=$('ef-utmbase').value.trim();
+  if(!base){ $('ef-utm-preview').style.display='none'; return; }
+  const ev=$('ef-event').value.trim(); const yr=$('ef-year').value.trim();
+  const src=$('ef-utmsource').value.trim()||ev.toLowerCase().replace(/\s+/g,'_');
+  const med=$('ef-utmmedium').value.trim()||'event';
+  const camp=$('ef-utmcampaign').value.trim()||(ev+(yr?'_'+yr:'')).toLowerCase().replace(/\s+/g,'_');
+  const cont=$('ef-utmcontent').value.trim();
+  const cid=$('ef-campaign').value.trim();
+  const parts=[];
+  if(src) parts.push(['utm_source',src]);
+  parts.push(['utm_medium',med]);
+  if(camp) parts.push(['utm_campaign',camp]);
+  if(cid) parts.push(['utm_id',cid]);
+  if(cont) parts.push(['utm_content',cont]);
+  const qs=parts.map(([k,v])=>`<span class="p">${k}</span>=<span class="v">${encodeURIComponent(v)}</span>`).join('&');
+  $('ef-utm-box').innerHTML=base+(base.includes('?')?'&':'?')+qs;
+  $('ef-utm-preview').style.display='block';
+}
+
+// ── Overlays ──────────────────────────────────────────
+function openOverlay(id){ $(id).classList.add('open'); }
+function closeOverlay(id,e){ if(!e||e.target===$(id)) $(id).classList.remove('open'); }
+
+// ── Toast ─────────────────────────────────────────────
+function toast(msg){
+  const el=$('toast'); el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ── Init ──────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  // If settings exist, pre-fill login
+  if(APP.settings.scriptUrl){ /* ready */ }
+});
+</script>
+</body>
+</html>
