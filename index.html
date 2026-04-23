@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="MycelScan"/>
+<meta name="theme-color" content="#003d20"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>MycelScan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@400;500&family=DM+Mono&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<style>
+:root{--green:#003d20;--bg:#fff;--bg2:#f7f6f2;--bg3:#edeae3;--text:#003d20;--text2:#4a6658;--text3:#8aa898;--border:rgba(0,61,32,.1);--border2:rgba(0,61,32,.2);--afg:#fff;--hot:#7f1d1d;--hot-bg:#fef2f2;--warm:#78350f;--warm-bg:#fef3c7;--cold:#374151;--cold-bg:#f3f4f6;--ok:#003d20;--ok-bg:#e8f5ee;--err:#991b1b;--err-bg:#fef2f2;--r:10px;--rl:16px}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1f14;--bg2:#132a1a;--bg3:#1a3322;--text:#e8f5ee;--text2:#7fad8e;--text3:#3d6b4f;--border:rgba(232,245,238,.1);--border2:rgba(232,245,238,.2);--afg:#0d1f14;--hot:#f87171;--hot-bg:#1c0505;--warm:#fbbf24;--warm-bg:#1c1505;--cold:#9ca3af;--cold-bg:#1f2937;--ok:#4ade80;--ok-bg:#052010;--err:#f87171;--err-bg:#1c0505}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;font-size:15px;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100dvh}
+.screen{display:none;flex-direction:column;height:100dvh}.screen.active{display:flex}
+.login-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:24px;overflow-y:auto}
+.brand-wordmark{text-align:center}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--green);letter-spacing:.02em;line-height:1.15;display:block}
+.brand-sub{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-top:6px;display:block}
+@media(prefers-color-scheme:dark){.brand-name{color:var(--text)}}
+.lcard{width:100%;max-width:360px;background:var(--bg2);border:.5px solid var(--border2);border-radius:var(--rl);padding:22px}
+.lcard h2{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:5px}
+.lcard p{font-size:13px;color:var(--text2);margin-bottom:18px}
+.ltype{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.tbtn{padding:10px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--bg);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;text-align:center}
+.tbtn.active{background:var(--green);color:#fff;border-color:var(--green)}
+.sgear{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:4px 0;letter-spacing:.04em}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;border-bottom:.5px solid var(--border);flex-shrink:0;background:var(--green)}
+.hdr-l{min-width:0;flex:1;display:flex;align-items:center;gap:8px}
+.hdr-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:#fff;letter-spacing:.02em}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.hdr-r{display:flex;gap:6px;flex-shrink:0}
+.tabbar{display:flex;border-bottom:.5px solid var(--border);flex-shrink:0;background:var(--bg)}
+.tab{flex:1;padding:11px 6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.panel{display:none;padding:16px}.panel.active{display:block}
+label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+input[type=text],input[type=email],input[type=tel],input[type=url],input[type=password],textarea,select{width:100%;padding:10px 12px;border:.5px solid var(--border2);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:15px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus,select:focus{border-color:var(--green)}
+textarea{resize:none;line-height:1.5}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a6658'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.field{margin-bottom:13px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sec{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:14px 0 9px;border-top:.5px solid var(--border);margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:.5px solid var(--border2);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;transition:all .15s;-webkit-user-select:none;user-select:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--green);color:#fff;border-color:var(--green);flex:1}.btn-p:active{opacity:.85}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-d{color:var(--err);border-color:var(--err)}
+.btn-w{color:#fff;border-color:rgba(255,255,255,.4)}
+.acts{display:flex;gap:8px;margin-top:18px;padding-bottom:44px}
+/* Scan buttons */
+.scan-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.scan-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 8px;border-radius:var(--rl);background:var(--bg2);border:.5px solid var(--border2);cursor:pointer;font-size:11px;font-weight:500;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s;-webkit-user-select:none;user-select:none;text-align:center;letter-spacing:.03em}
+.scan-btn:active{background:var(--bg3);border-color:var(--green);color:var(--green)}
+.scan-btn svg{opacity:.5}
+/* QR overlay */
+.qr-overlay{display:none;position:fixed;inset:0;background:#000;z-index:300;flex-direction:column}
+.qr-overlay.active{display:flex}
+.qr-overlay video{flex:1;width:100%;object-fit:cover}
+.qr-bar{background:var(--green);padding:16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.qr-bar span{color:#fff;font-size:14px;font-weight:500}
+.qr-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:220px;height:220px;border:2px solid rgba(255,255,255,.8);border-radius:12px;pointer-events:none}
+.qr-frame::before,.qr-frame::after{content:'';position:absolute;width:30px;height:30px;border-color:#fff;border-style:solid}
+.qr-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:10px 0 0 0}
+.qr-frame::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 10px 0}
+.qr-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,40px);color:rgba(255,255,255,.7);font-size:13px;text-align:center;width:240px;pointer-events:none}
+/* Badge preview */
+.bcard{display:flex;align-items:center;gap:11px;background:var(--bg2);border:.5px solid var(--border);border-radius:var(--rl);padding:12px 14px;margin-bottom:14px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--ok-bg);display:flex;align-items:center;justify-content:center;font-weight:500;font-size:16px;color:var(--green);flex-shrink:0;font-family:'Cormorant Garamond',serif}
+.aichip{display:inline-flex;align-items:center;font-size:10px;font-weight:500;padding:2px 7px;border-radius:99px;background:var(--ok-bg);color:var(--ok);margin-left:5px;vertical-align:middle}
+.or-row{display:flex;align-items:center;gap:9px;margin:12px 0;color:var(--text3);font-size:12px}
+.or-row::before,.or-row::after{content:'';flex:1;height:.5px;background:var(--border)}
+.scanning{display:none;align-items:center;gap:8px;font-size:13px;color:var(--text2);padding:6px 0 12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pu 1s ease-in-out infinite}
+@keyframes pu{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.8)}}
+.tgg{display:flex;gap:6px;flex-wrap:wrap}
+.tg{padding:7px 13px;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;border:.5px solid var(--border2);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s;-webkit-user-select:none;user-select:none}
+.tg.active{background:var(--green);color:#fff;border-color:var(--green)}
+.tg.hot.active{background:var(--hot);border-color:var(--hot);color:#fff}
+.tg.warm.active{background:var(--warm);border-color:var(--warm);color:#fff}
+.tg.cold.active{background:#374151;border-color:#374151;color:#fff}
+.notes-prompt{background:var(--ok-bg);border:.5px solid rgba(0,61,32,.2);border-radius:var(--r);padding:10px 13px;margin-bottom:8px}
+.notes-prompt p{font-size:11px;font-weight:500;color:var(--green);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
+.notes-prompt ul{font-size:12px;color:var(--text2);padding-left:16px;line-height:1.9}
+.li{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:12px 14px;margin-bottom:7px;cursor:pointer;transition:background .12s}
+.li:active{background:var(--bg2)}
+.li-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.li-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400}
+.li-meta{font-size:12px;color:var(--text2);margin-top:2px}
+.pill{font-size:10px;font-weight:500;padding:3px 9px;border-radius:99px;flex-shrink:0;letter-spacing:.04em;white-space:nowrap}
+.p-hot{background:var(--hot-bg);color:var(--hot)}.p-warm{background:var(--warm-bg);color:var(--warm)}.p-cold{background:var(--cold-bg);color:var(--cold)}
+.p-q{background:var(--ok-bg);color:var(--ok)}.p-uq{background:var(--bg3);color:var(--text3)}
+.p-syn{background:var(--ok-bg);color:var(--ok)}.p-pend{background:var(--warm-bg);color:var(--warm)}.p-err{background:var(--err-bg);color:var(--err)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
+.stat{background:var(--bg2);border-radius:var(--r);padding:11px 8px;text-align:center}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--green)}
+.stat-l{font-size:10px;color:var(--text2);margin-top:2px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+@media(prefers-color-scheme:dark){.stat-n{color:var(--text)}}
+.ecard{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--rl);padding:13px 15px;margin-bottom:8px}
+.ecode{font-family:'DM Mono',monospace;font-size:12px;color:var(--green);background:var(--ok-bg);padding:2px 8px;border-radius:6px;display:inline-block;margin-bottom:6px}
+.ename{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400}
+.emeta{font-size:12px;color:var(--text2);margin-top:2px}
+.eacts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.utm-box{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);padding:12px 13px;font-family:'DM Mono',monospace;font-size:11px;word-break:break-all;line-height:1.7;color:var(--text2)}
+.utm-box .p{color:var(--green)}
+.sbar{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);padding:8px 0 12px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex-shrink:0}
+.sdot.pend{background:var(--warm);animation:pu 1s infinite}.sdot.fail{background:var(--err)}
+.wbar{background:var(--warm-bg);border:.5px solid rgba(120,53,15,.3);border-radius:var(--r);padding:9px 12px;font-size:12px;color:var(--warm);margin-bottom:12px}
+.ibar{background:var(--ok-bg);border:.5px solid rgba(0,61,32,.2);border-radius:var(--r);padding:9px 12px;font-size:12px;color:var(--green);margin-bottom:12px}
+.empty{text-align:center;padding:44px 20px;color:var(--text3);font-size:14px;line-height:1.8}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:500;z-index:999;transition:transform .25s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:flex-end}
+.ov.open{display:flex}
+.sheet{background:var(--bg);border-radius:20px 20px 0 0;padding:22px 18px 44px;width:100%;max-height:92vh;overflow-y:auto}
+.shdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.shdr h2{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400}
+.dr{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:.5px solid var(--border);gap:12px}
+.dl{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;padding-top:1px}
+.dv{font-size:13px;text-align:right;word-break:break-word}
+.dnotes{background:var(--bg2);border-radius:var(--r);padding:10px 12px;font-size:13px;line-height:1.6;margin-top:8px;color:var(--text2)}
+.udot{width:7px;height:7px;border-radius:50%;background:var(--warm);display:inline-block;margin-left:6px;vertical-align:middle}
+.map-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:10px}
+.map-label{font-size:12px;color:var(--text2);font-weight:500}
+.map-req{color:var(--err);font-size:10px;margin-left:2px}
+.csv-preview{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--r);overflow:auto;max-height:140px;margin-top:8px}
+.csv-preview table{font-size:11px;font-family:'DM Mono',monospace;border-collapse:collapse;width:100%}
+.csv-preview th{background:var(--bg3);padding:5px 8px;text-align:left;border-bottom:.5px solid var(--border);white-space:nowrap;color:var(--text2);font-weight:500}
+.csv-preview td{padding:4px 8px;border-bottom:.5px solid var(--border);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.upload-area{border:1.5px dashed var(--border2);border-radius:var(--rl);padding:22px;text-align:center;background:var(--bg2);cursor:pointer;transition:all .15s}
+.upload-area p{font-size:13px;color:var(--text2);margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="screen active" id="screen-login">
+  <div class="login-wrap">
+    <div class="brand-wordmark">
+      <div class="brand-name">Mycel<span style="font-family:'DM Sans',sans-serif;font-size:32px;font-weight:500;letter-spacing:.01em;">Scan</span></div>
+      <div class="brand-sub">by Mycel Advisors</div>
+    </div>
+    <div class="lcard">
+      <h2>Welcome</h2>
+      <p>Sign in as admin or enter your event code to start scanning.</p>
+      <div class="ltype">
+        <button class="tbtn active" id="lt-vendor" onclick="setLT('vendor')">Event code</button>
+        <button class="tbtn" id="lt-admin" onclick="setLT('admin')">Admin</button>
+      </div>
+      <div id="div-vl">
+        <div class="field"><label>Event code</label>
+          <input type="text" id="l-code" placeholder="e.g. HIMSS25-ZWX" style="text-transform:uppercase;letter-spacing:.06em;" maxlength="20" onkeydown="if(event.key==='Enter')vLogin()"/>
+        </div>
+        <div id="v-err" class="wbar" style="display:none;"></div>
+        <button class="btn btn-p" style="width:100%;margin-top:4px;" onclick="vLogin()">Enter event →</button>
+      </div>
+      <div id="div-al" style="display:none;">
+        <div class="field"><label>Admin password</label>
+          <input type="password" id="l-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')aLogin()"/>
+        </div>
+        <div id="a-err" class="wbar" style="display:none;"></div>
+        <button class="btn btn-p" style="width:100%;margin-top:4px;" onclick="aLogin()">Sign in →</button>
+      </div>
+    </div>
+    <button class="sgear" onclick="openOv('ov-settings')">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 1v1.2M7 11.8V13M1 7h1.2M11.8 7H13M2.75 2.75l.85.85M10.4 10.4l.85.85M11.25 2.75l-.85.85M3.6 10.4l-.85.85" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Settings
+    </button>
+    <div id="l-spin" style="display:none;color:var(--text2);font-size:13px;">Checking…</div>
+  </div>
+</div>
+
+<!-- VENDOR SCANNER -->
+<div class="screen" id="screen-vendor">
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="hdr-name">Mycel<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.1em;">Scan</span></div>
+      <div class="hdr-sub" id="v-sub"></div>
+    </div>
+    <div class="hdr-r">
+      <button class="btn btn-sm btn-w" onclick="openExport()">Export</button>
+      <button class="btn btn-sm btn-w" onclick="confirmExit()">Exit</button>
+    </div>
+  </div>
+  <div class="tabbar">
+    <button class="tab active" onclick="vTab('scan')">Scan <span id="udot" style="display:none;" class="udot"></span></button>
+    <button class="tab" onclick="vTab('leads')">Leads <span id="v-cnt" style="font-size:10px;background:var(--bg3);padding:1px 6px;border-radius:99px;margin-left:3px;">0</span></button>
+  </div>
+  <div class="content">
+    <div class="panel active" id="vp-scan">
+      <div id="v-api-warn" class="wbar" style="display:none;">AI scanning unavailable for this event — fill in manually.</div>
+
+      <!-- Three scan mode buttons -->
+      <div class="scan-btns">
+        <button class="scan-btn" onclick="$('badge-camera').click()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Take photo
+        </button>
+        <button class="scan-btn" onclick="$('badge-library').click()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Upload image
+        </button>
+        <button class="scan-btn" onclick="startQR()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><line x1="21" y1="14" x2="21" y2="17"/><line x1="17" y1="21" x2="21" y2="21"/></svg>
+          Scan QR
+        </button>
+      </div>
+
+      <input type="file" id="badge-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleBadgeImage(event)"/>
+      <input type="file" id="badge-library" accept="image/*" style="display:none;" onchange="handleBadgeImage(event)"/>
+
+      <div class="scanning" id="scan-ind"><div class="dot"></div><span id="scan-msg">Reading badge with AI…</span></div>
+
+      <div class="bcard" id="bpreview" style="display:none;">
+        <div class="av" id="bav">?</div>
+        <div id="binfo" style="flex:1;min-width:0;"></div>
+      </div>
+
+      <div class="or-row">or enter manually</div>
+
+      <div class="row2">
+        <div class="field"><label>First name</label><input type="text" id="f-first" placeholder="Jane" autocomplete="off" oninput="markDirty()"/></div>
+        <div class="field"><label>Last name</label><input type="text" id="f-last" placeholder="Smith" autocomplete="off" oninput="markDirty()"/></div>
+      </div>
+      <div class="field"><label>Title / role</label><input type="text" id="f-ti" placeholder="VP Operations" autocomplete="off" oninput="markDirty()"/></div>
+      <div class="field"><label>Company</label><input type="text" id="f-co" placeholder="Mycel Advisors" autocomplete="off" oninput="markDirty()"/></div>
+
+      <div class="sec">Contact details</div>
+      <div class="field"><label>Email</label><input type="email" id="f-em" placeholder="jane@myceladvisors.com" autocomplete="off" oninput="markDirty()"/></div>
+      <div class="field"><label>Phone</label><input type="tel" id="f-ph" placeholder="+1 (555) 000-0000" autocomplete="off" oninput="markDirty()"/></div>
+      <div class="field"><label>LinkedIn</label><input type="text" id="f-li" placeholder="linkedin.com/in/jane" autocomplete="off" oninput="markDirty()"/></div>
+
+      <div class="sec">Lead qualification</div>
+      <div class="field">
+        <label>Qualified?</label>
+        <div class="tgg">
+          <button class="tg active" id="q-yes" onclick="setTG('qualified','yes',this)">Yes</button>
+          <button class="tg" id="q-no" onclick="setTG('qualified','no',this)">No</button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>Priority</label>
+        <div class="tgg">
+          <button class="tg hot" id="pr-hot" onclick="setTG('priority','hot',this)">Hot</button>
+          <button class="tg warm active" id="pr-warm" onclick="setTG('priority','warm',this)">Warm</button>
+          <button class="tg cold" id="pr-cold" onclick="setTG('priority','cold',this)">Cold</button>
+        </div>
+      </div>
+
+      <div class="sec">Follow-up notes</div>
+      <div class="notes-prompt">
+        <p>Capture these three things</p>
+        <ul>
+          <li>Best time &amp; way to reconnect post-event</li>
+          <li>Preferred contact method (email, call, LinkedIn)</li>
+          <li>Biggest pain point / direct buying motive</li>
+        </ul>
+      </div>
+      <div class="field"><textarea id="f-no" placeholder="e.g. Best after 10am EST, prefers email — evaluating vendors for Q3 rollout, main pain is manual reporting…" style="min-height:110px;" oninput="markDirty()"></textarea></div>
+
+      <div class="acts">
+        <button class="btn btn-sm" onclick="clearForm(true)">Clear</button>
+        <button class="btn btn-p" id="save-btn" onclick="saveLead()">Save lead →</button>
+      </div>
+    </div>
+
+    <!-- Leads list tab -->
+    <div class="panel" id="vp-leads">
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="vs-tot">0</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" id="vs-hot" style="color:var(--hot);">0</div><div class="stat-l">Hot</div></div>
+        <div class="stat"><div class="stat-n" id="vs-q">0</div><div class="stat-l">Qualified</div></div>
+      </div>
+      <div class="sbar">
+        <span class="sdot" id="sdot"></span><span id="smsg">All synced</span>
+        <button id="retry-btn" class="btn btn-sm" style="display:none;margin-left:auto;" onclick="retryQ()">Retry →</button>
+      </div>
+      <div id="vll"></div>
+      <div style="padding-bottom:44px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- QR CAMERA OVERLAY -->
+<div class="qr-overlay" id="qr-overlay">
+  <div class="qr-bar">
+    <span>Point camera at QR code</span>
+    <button class="btn btn-sm btn-w" onclick="stopQR()">Cancel</button>
+  </div>
+  <video id="qr-video" playsinline autoplay muted></video>
+  <div class="qr-frame"></div>
+  <div class="qr-hint">Hold steady — scanning automatically</div>
+  <canvas id="qr-canvas" style="display:none;"></canvas>
+</div>
+
+<!-- ADMIN -->
+<div class="screen" id="screen-admin">
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="hdr-name">Mycel<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.1em;">Scan</span><span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:400;opacity:.5;margin-left:8px;letter-spacing:.06em;">Admin</span></div>
+    </div>
+    <div class="hdr-r">
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff;" onclick="openEF()">+ Event</button>
+      <button class="btn btn-sm btn-w" onclick="confirmExit()">Exit</button>
+    </div>
+  </div>
+  <div class="tabbar">
+    <button class="tab active" onclick="aTab('events')">Events</button>
+    <button class="tab" onclick="aTab('leads')">All leads</button>
+    <button class="tab" onclick="aTab('settings')">Settings</button>
+  </div>
+  <div class="content">
+    <div class="panel active" id="ap-events"><div id="ael"></div><div style="padding-bottom:44px;"></div></div>
+    <div class="panel" id="ap-leads">
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="as-tot">0</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" id="as-hot" style="color:var(--hot);">0</div><div class="stat-l">Hot</div></div>
+        <div class="stat"><div class="stat-n" id="as-ev">0</div><div class="stat-l">Events</div></div>
+      </div>
+      <div style="display:flex;gap:7px;margin-bottom:14px;">
+        <select id="a-filt" onchange="renderAL()" style="flex:1;"><option value="">All events</option></select>
+        <button class="btn btn-sm" onclick="exportAdmin()">Export CSV</button>
+      </div>
+      <div id="all"></div><div style="padding-bottom:44px;"></div>
+    </div>
+    <div class="panel" id="ap-settings">
+      <div class="field"><label>Admin password</label><input type="password" id="s-pw" placeholder="••••••••" oninput="saveS()"/><p style="font-size:11px;color:var(--text3);margin-top:5px;">Stored on this device only.</p></div>
+      <div class="field"><label>Anthropic API key</label><input type="password" id="s-ak" placeholder="sk-ant-…" oninput="saveS()"/></div>
+      <button class="btn btn-p" style="width:100%;margin-top:4px;" onclick="pushAPIKeyToSheets()">Save API key to Sheets →</button>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6;">Once saved to Sheets, any device logging in as admin receives the API key automatically.</p>
+      <div style="padding-bottom:44px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: settings (pre-login) -->
+<div class="ov" id="ov-settings" onclick="closeOv('ov-settings',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shdr"><h2>App settings</h2><button class="btn btn-sm" onclick="closeOv('ov-settings')">Done</button></div>
+    <div class="ibar">The app is already connected to Mycel Advisors' backend. Vendors only need their event code.</div>
+    <div class="field"><label>Admin password (optional)</label><input type="password" id="pre-pw" placeholder="••••••••" oninput="savePreS()"/></div>
+    <div class="field"><label>Anthropic API key (optional)</label><input type="password" id="pre-ak" placeholder="sk-ant-…" oninput="savePreS()"/></div>
+  </div>
+</div>
+
+<!-- OVERLAY: event form -->
+<div class="ov" id="ov-event" onclick="closeOv('ov-event',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shdr"><h2 id="ef-ttl">New event</h2><button class="btn btn-sm" onclick="closeOv('ov-event')">Cancel</button></div>
+    <div class="row2">
+      <div class="field"><label>Event code</label><input type="text" id="ef-code" placeholder="HIMSS25-ZWX" style="text-transform:uppercase;letter-spacing:.04em;" maxlength="20"/></div>
+      <div class="field"><label>Year</label><input type="text" id="ef-yr" placeholder="2025" maxlength="4"/></div>
+    </div>
+    <div class="field"><label>Vendor name</label><input type="text" id="ef-vn" placeholder="Zimworx"/></div>
+    <div class="field"><label>Event name</label><input type="text" id="ef-en" placeholder="HIMSS Annual Conference"/></div>
+    <div class="sec">CRM integration</div>
+    <div class="row2">
+      <div class="field"><label>CRM type</label><select id="ef-crm"><option value="hubspot">HubSpot</option><option value="salesforce">Salesforce</option><option value="other">Other / CSV</option></select></div>
+      <div class="field"><label>Campaign ID</label><input type="text" id="ef-cid" placeholder="HubSpot or SF ID"/></div>
+    </div>
+    <div class="sec">Lead source</div>
+    <div class="field"><label>Source type</label>
+      <div class="tgg" id="ef-src-tgg">
+        <button class="tg active" onclick="setEFSrc('booth',this)">Booth</button>
+        <button class="tg" onclick="setEFSrc('sponsored_speaker',this)">Sponsored Speaker</button>
+        <button class="tg" onclick="setEFSrc('cocktail_hour',this)">Cocktail Hour</button>
+        <button class="tg" onclick="setEFSrc('event_list',this)">Event List</button>
+        <button class="tg" onclick="setEFSrc('custom',this)">Custom…</button>
+      </div>
+    </div>
+    <div class="field" id="ef-src-cw" style="display:none;margin-top:8px;"><label>Custom source</label><input type="text" id="ef-src-c" placeholder="e.g. workshop" oninput="prevUTM()"/></div>
+    <div class="sec">UTM parameters</div>
+    <div class="field"><label>Base URL</label><input type="url" id="ef-ub" placeholder="https://yoursite.com/page" oninput="prevUTM()"/></div>
+    <div class="row2">
+      <div class="field"><label>UTM source</label><input type="text" id="ef-us" placeholder="auto" oninput="prevUTM()"/></div>
+      <div class="field"><label>UTM medium</label><input type="text" id="ef-um" value="event" oninput="prevUTM()"/></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>UTM campaign</label><input type="text" id="ef-uc" placeholder="auto" oninput="prevUTM()"/></div>
+      <div class="field"><label>UTM content</label><input type="text" id="ef-uct" placeholder="optional" oninput="prevUTM()"/></div>
+    </div>
+    <div id="ef-utp" style="display:none;margin-top:4px;"><p style="font-size:11px;color:var(--text2);margin-bottom:5px;">Preview:</p><div class="utm-box" id="ef-utb"></div></div>
+    <div class="sec">AI scanning</div>
+    <div class="field"><label>API key override (optional)</label><input type="password" id="ef-ak" placeholder="Leave blank to use global key"/></div>
+    <div id="ef-err" class="wbar" style="display:none;"></div>
+    <div class="acts"><button class="btn btn-p" onclick="submitEF()">Save event →</button></div>
+  </div>
+</div>
+
+<!-- OVERLAY: CSV upload -->
+<div class="ov" id="ov-csv" onclick="closeOv('ov-csv',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shdr"><h2 id="csv-ttl">Upload event list</h2><button class="btn btn-sm" onclick="closeOv('ov-csv')">Cancel</button></div>
+    <div id="csv-s1">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Upload a CSV from the event organizer. You'll map their columns to MycelScan fields on the next screen.</p>
+      <div class="upload-area" onclick="$('csv-file').click()">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style="margin:0 auto;display:block;color:var(--green);opacity:.4;"><path d="M14 18V8M14 8l-4 4M14 8l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="18" width="20" height="6" rx="2" stroke="currentColor" stroke-width="1.4"/></svg>
+        <p>Tap to choose a CSV file</p>
+      </div>
+      <input type="file" id="csv-file" accept=".csv,text/csv" style="display:none;" onchange="handleCSV(event)"/>
+    </div>
+    <div id="csv-s2" style="display:none;">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:4px;">Map columns to MycelScan fields.</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:14px;"><span style="color:var(--err);">*</span> = required</p>
+      <div id="csv-mapping"></div>
+      <div style="margin-top:14px;"><p style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:500;">Preview (first 3 rows):</p><div class="csv-preview"><div id="csv-pt"></div></div></div>
+      <div id="csv-err" class="wbar" style="display:none;margin-top:12px;"></div>
+      <div class="acts"><button class="btn btn-sm" onclick="csvBack()">← Back</button><button class="btn btn-p" onclick="submitCSV()">Import & push to CRM →</button></div>
+    </div>
+    <div id="csv-s3" style="display:none;text-align:center;padding:32px 0;">
+      <div class="dot" style="margin:0 auto 14px;width:10px;height:10px;"></div>
+      <p style="font-size:14px;color:var(--text2);" id="csv-prog">Pushing leads to Sheets…</p>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: export -->
+<div class="ov" id="ov-export" onclick="closeOv('ov-export',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shdr"><h2>Export leads</h2><button class="btn btn-sm" onclick="closeOv('ov-export')">Close</button></div>
+    <div class="field"><label>Format</label>
+      <div class="tgg">
+        <button class="tg active" id="exp-hs" onclick="setExpFmt('hubspot',this)">HubSpot</button>
+        <button class="tg" id="exp-sf" onclick="setExpFmt('salesforce',this)">Salesforce</button>
+        <button class="tg" id="exp-raw" onclick="setExpFmt('raw',this)">Raw CSV</button>
+      </div>
+    </div>
+    <div id="exp-note" style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6;background:var(--bg2);border-radius:var(--r);padding:10px 12px;border:.5px solid var(--border);"></div>
+    <div class="acts"><button class="btn btn-p" onclick="doExport()">Download CSV →</button></div>
+  </div>
+</div>
+
+<!-- OVERLAY: lead detail + edit -->
+<div class="ov" id="ov-lead" onclick="closeOv('ov-lead',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="shdr"><h2 id="ld-name">Lead</h2>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm" onclick="editLead()">Edit</button>
+        <button class="btn btn-sm btn-d" onclick="deleteLead()">Delete</button>
+      </div>
+    </div>
+    <div id="ld-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const SCRIPT_URL='YOUR_SCRIPT_URL_HERE';
+const EF_SRC={booth:'Booth',sponsored_speaker:'Sponsored Speaker',cocktail_hour:'Cocktail Hour',event_list:'Event List'};
+const LS_FIELDS=[{key:'firstname',label:'First name',req:true},{key:'lastname',label:'Last name',req:true},{key:'email',label:'Email',req:false},{key:'company',label:'Company',req:false},{key:'title',label:'Title',req:false},{key:'phone',label:'Phone',req:false},{key:'linkedin',label:'LinkedIn',req:false},{key:'notes',label:'Notes',req:false}];
+
+const S=JSON.parse(localStorage.getItem('ls_cfg')||'{}');
+if(!S.url)S.url=SCRIPT_URL;
+const A={S,session:null,leads:[],aLeads:[],aEvents:[],editCode:null,editingLeadId:null,expFmt:'hubspot',dirty:false,viewId:null,Q:JSON.parse(localStorage.getItem('ls_q')||'[]'),st:{qualified:'yes',priority:'warm'},csv:{rows:[],headers:[],mapping:{},eventCode:'',savedMappings:JSON.parse(localStorage.getItem('ls_maps')||'{}')}};
+let efSrcVal='booth',qrStream=null,qrInterval=null;
+
+function pS(){localStorage.setItem('ls_cfg',JSON.stringify(A.S));}
+function pQ(){localStorage.setItem('ls_q',JSON.stringify(A.Q));}
+function saveS(){A.S.pw=$('s-pw').value.trim();A.S.ak=$('s-ak').value.trim();pS();toast('Settings saved');}
+function savePreS(){A.S.pw=$('pre-pw').value.trim();A.S.ak=$('pre-ak').value.trim();pS();}
+function syncF(){if($('s-pw')&&A.S.pw)$('s-pw').value=A.S.pw;if($('s-ak')&&A.S.ak)$('s-ak').value=A.S.ak;if($('pre-pw')&&A.S.pw)$('pre-pw').value=A.S.pw;if($('pre-ak')&&A.S.ak)$('pre-ak').value=A.S.ak;}
+
+async function api(p){const url=A.S.url||SCRIPT_URL;if(!url||url==='YOUR_SCRIPT_URL_HERE')throw new Error('Script URL not configured. Tap Settings.');const r=await fetch(url,{method:'POST',body:JSON.stringify(p)});const d=await r.json();if(!d.ok)throw new Error(d.error||'Error');return d;}
+
+// ── Login ──────────────────────────────────────────────
+let LT='vendor';
+function setLT(t){LT=t;$('lt-vendor').classList.toggle('active',t==='vendor');$('lt-admin').classList.toggle('active',t==='admin');$('div-vl').style.display=t==='vendor'?'block':'none';$('div-al').style.display=t==='admin'?'block':'none';}
+async function vLogin(){const code=$('l-code').value.trim().toUpperCase();if(!code){lErr('vendor','Please enter an event code');return;}$('l-spin').style.display='block';try{const r=await api({action:'validateCode',code});A.session={type:'vendor',event:r.event};if(r.event.apiKey)A.S.ak=r.event.apiKey;A.leads=[];enterV();}catch(e){lErr('vendor',e.message);}$('l-spin').style.display='none';}
+async function aLogin(){const pw=$('l-pw').value.trim();if(!pw){lErr('admin','Please enter your password');return;}$('l-spin').style.display='block';try{await api({action:'adminLogin',password:pw});A.S.pw=pw;try{const cfg=await api({action:'getConfig',password:pw});if(cfg.config?.apiKey)A.S.ak=cfg.config.apiKey;}catch(e){}pS();A.session={type:'admin'};enterA();}catch(e){lErr('admin',e.message);}$('l-spin').style.display='none';}
+function lErr(t,m){const el=$(t==='vendor'?'v-err':'a-err');el.textContent=m;el.style.display='block';setTimeout(()=>el.style.display='none',5000);}
+function confirmExit(){if(A.dirty&&!confirm('You have unsaved form data. Exit anyway?'))return;stopQR();A.session=null;A.dirty=false;showSc('login');$('l-code').value='';$('l-pw').value='';}
+function showSc(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$('screen-'+id).classList.add('active');}
+
+// ── Vendor mode ────────────────────────────────────────
+async function enterV(){const ev=A.session.event;$('v-sub').textContent=(ev.vendorName||'')+(ev.eventName?' · '+ev.eventName:'');$('v-api-warn').style.display=(ev.apiKey||A.S.ak)?'none':'block';showSc('vendor');vTab('scan');await loadVendorLeads();const p=A.Q.filter(i=>i.lead.code===ev.code&&(i.status==='pending'||i.status==='error')).length;p>0?setSS('fail',p+' unsynced — tap Retry'):setSS('ok','All synced');}
+function vTab(id){document.querySelectorAll('#screen-vendor .tab').forEach((t,i)=>t.classList.toggle('active',['scan','leads'][i]===id));$('vp-scan').classList.toggle('active',id==='scan');$('vp-leads').classList.toggle('active',id==='leads');if(id==='leads')loadVendorLeads();}
+async function loadVendorLeads(){try{const r=await api({action:'getLeads',code:A.session.event.code});const shIds=new Set(r.leads.map(l=>String(l.id)));const localOnly=A.Q.filter(q=>q.status!=='synced'&&!shIds.has(q.id)).map(q=>q.lead);A.leads=[...localOnly,...r.leads];}catch(e){A.leads=A.Q.filter(i=>i.lead.code===A.session.event.code).map(i=>i.lead);}renderVL();updVS();}
+function markDirty(){A.dirty=true;$('udot').style.display='inline-block';}
+function clearDirty(){A.dirty=false;$('udot').style.display='none';}
+
+// ── QR Scanning ────────────────────────────────────────
+async function startQR(){
+  try{
+    qrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const video=$('qr-video');video.srcObject=qrStream;
+    $('qr-overlay').classList.add('active');
+    video.addEventListener('loadedmetadata',()=>{
+      const canvas=$('qr-canvas');
+      qrInterval=setInterval(()=>{
+        if(video.readyState===video.HAVE_ENOUGH_DATA){
+          canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+          const ctx=canvas.getContext('2d');ctx.drawImage(video,0,0);
+          const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+          const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+          if(code){stopQR();parseQRData(code.data);}
+        }
+      },200);
+    });
+  }catch(e){toast('Camera access denied — please allow camera in browser settings');}
+}
+function stopQR(){
+  if(qrInterval){clearInterval(qrInterval);qrInterval=null;}
+  if(qrStream){qrStream.getTracks().forEach(t=>t.stop());qrStream=null;}
+  $('qr-overlay').classList.remove('active');
+}
+function parseQRData(raw){
+  // Try JSON first (some badges encode structured data)
+  let parsed={};
+  try{parsed=JSON.parse(raw);}catch(e){
+    // Try vCard format
+    if(raw.includes('BEGIN:VCARD')){
+      const fn=raw.match(/FN:(.*)/)?.[1]||'';const parts=fn.split(' ');
+      parsed.firstname=parts[0]||'';parsed.lastname=parts.slice(1).join(' ')||'';
+      parsed.email=raw.match(/EMAIL[^:]*:(.*)/)?.[1]||'';
+      parsed.company=raw.match(/ORG:(.*)/)?.[1]||'';
+      parsed.title=raw.match(/TITLE:(.*)/)?.[1]||'';
+      parsed.phone=raw.match(/TEL[^:]*:(.*)/)?.[1]||'';
+    } else {
+      // Plain text — put everything in firstname as starting point
+      parsed.firstname=raw.substring(0,50);
+    }
+  }
+  $('f-first').value=parsed.firstname||parsed.first_name||parsed.firstName||'';
+  $('f-last').value=parsed.lastname||parsed.last_name||parsed.lastName||'';
+  $('f-ti').value=parsed.title||parsed.job_title||parsed.jobTitle||'';
+  $('f-co').value=parsed.company||parsed.organization||parsed.org||'';
+  $('f-em').value=parsed.email||'';
+  $('f-ph').value=parsed.phone||parsed.tel||'';
+  showBP({firstname:$('f-first').value,lastname:$('f-last').value,title:$('f-ti').value,company:$('f-co').value},false,'QR');
+  markDirty();toast('QR code scanned — please verify the details');
+}
+
+// ── AI Badge Image Scanning ────────────────────────────
+async function handleBadgeImage(e){
+  const f=e.target.files[0];if(!f)return;
+  const key=A.session.event.apiKey||A.S.ak;
+  if(!key){toast('No API key — fill in manually');return;}
+  $('scan-ind').style.display='flex';$('scan-msg').textContent='Reading badge with AI…';$('bpreview').style.display='none';
+  try{
+    // Resize image before sending — reduces failures on large photos
+    const b64=await resizeAndEncode(f,1200);
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:800,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+          {type:'text',text:`This is an event conference badge. Extract whatever contact information you can see.
+Return ONLY a JSON object with these fields (use empty string if not found, never null):
+{"firstname":"","lastname":"","title":"","company":"","email":"","phone":""}
+Rules:
+- If you see a full name but cannot split it, put it all in firstname
+- Look for QR codes, text, logos — read all visible text
+- Return valid JSON only, no explanation, no markdown`}
+        ]}]
+      })
+    });
+    const d=await r.json();
+    if(d.error){throw new Error(d.error.message||'API error');}
+    const txt=d.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    // Strip any markdown fences if present
+    const clean=txt.replace(/```json|```/g,'').trim();
+    const p=JSON.parse(clean);
+    $('f-first').value=p.firstname||'';$('f-last').value=p.lastname||'';
+    $('f-ti').value=p.title||'';$('f-co').value=p.company||'';
+    if(p.email)$('f-em').value=p.email;
+    if(p.phone)$('f-ph').value=p.phone;
+    showBP(p,true,'AI');markDirty();
+    // If key fields empty, warn instead of silently failing
+    if(!p.firstname&&!p.lastname&&!p.company){
+      toast('AI could not read this badge clearly — please fill in manually');
+    }
+  }catch(err){
+    console.error('Scan error:',err);
+    toast('Could not read badge — please fill in manually or try a clearer photo');
+  }
+  $('scan-ind').style.display='none';
+  $('badge-camera').value='';$('badge-library').value='';
+}
+
+// Resize image to max dimension before sending to API
+function resizeAndEncode(file,maxDim){
+  return new Promise((res,rej)=>{
+    const img=new Image();const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>maxDim||h>maxDim){const r=maxDim/Math.max(w,h);w=Math.round(w*r);h=Math.round(h*r);}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg',0.92).split(',')[1]);
+    };
+    img.onerror=rej;img.src=url;
+  });
+}
+
+function showBP(d,ai,source){
+  const fn=(d.firstname||'')[0]||'?';const ln=(d.lastname||'')[0]||'';
+  $('bav').textContent=(fn+ln).toUpperCase();
+  const chip=ai?`<span class="aichip">✓ ${source||'AI'}</span>`:(source?`<span class="aichip">${source}</span>`:'');
+  $('binfo').innerHTML=`<div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;">${d.firstname||''} ${d.lastname||''}${chip}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${[d.title,d.company].filter(Boolean).join(' · ')}</div>`;
+  $('bpreview').style.display='flex';
+}
+
+// ── Save / Edit lead ───────────────────────────────────
+async function saveLead(){
+  const fn=$('f-first').value.trim(),ln=$('f-last').value.trim();
+  if(!fn&&!ln){toast('Please enter a name');return;}
+  const ev=A.session.event;
+  const isEdit=!!A.editingLeadId;
+  const lead={
+    id:isEdit?A.editingLeadId:Date.now().toString(),
+    code:ev.code,vendorName:ev.vendorName,eventName:ev.eventName,eventYear:ev.eventYear,
+    campaignId:ev.campaignId,crmType:ev.crmType,
+    firstname:fn,lastname:ln,title:$('f-ti').value.trim(),company:$('f-co').value.trim(),
+    email:$('f-em').value.trim(),phone:$('f-ph').value.trim(),linkedin:$('f-li').value.trim(),
+    leadtype:'badge_scan',eventSource:ev.eventSource||'booth',
+    qualified:A.st.qualified,priority:A.st.priority,
+    notes:$('f-no').value.trim(),
+    utmBase:ev.utmBase||'',utmSource:ev.utmSource||'',utmMedium:ev.utmMedium||'event',
+    utmCampaign:ev.utmCampaign||'',utmContent:ev.utmContent||'',
+    submittedAt:new Date().toISOString()
+  };
+  // Update local list
+  if(isEdit){const idx=A.leads.findIndex(l=>l.id===A.editingLeadId);if(idx>=0)A.leads[idx]=lead;else A.leads.unshift(lead);}
+  else{A.leads.unshift(lead);}
+  clearForm(false);clearDirty();A.editingLeadId=null;
+  $('save-btn').textContent='Save lead →';
+  renderVL();updVS();toast(isEdit?'Lead updated':'Lead saved');vTab('leads');
+  enqueue(lead,isEdit);
+}
+
+function editLead(){
+  const l=A.leads.find(l=>l.id===A.viewId);if(!l)return;
+  closeOv('ov-lead');
+  // Pre-fill form with lead data
+  $('f-first').value=l.firstname||'';$('f-last').value=l.lastname||'';
+  $('f-ti').value=l.title||'';$('f-co').value=l.company||'';
+  $('f-em').value=l.email||'';$('f-ph').value=l.phone||'';
+  $('f-li').value=l.linkedin||'';$('f-no').value=l.notes||'';
+  // Set toggles
+  A.st.qualified=l.qualified||'yes';A.st.priority=l.priority||'warm';
+  document.querySelectorAll('#vp-scan .tg').forEach(t=>t.classList.remove('active'));
+  $(l.qualified==='yes'?'q-yes':'q-no').classList.add('active');
+  $('pr-'+A.st.priority).classList.add('active');
+  showBP(l,false,'');
+  A.editingLeadId=l.id;
+  $('save-btn').textContent='Update lead →';
+  markDirty();vTab('scan');
+  // Scroll to top of scan panel
+  $('vp-scan').scrollTop=0;
+}
+
+function clearForm(c){
+  if(c&&A.dirty&&!window.confirm('Clear the form? Unsaved data will be lost.'))return;
+  ['f-first','f-last','f-ti','f-co','f-em','f-ph','f-li','f-no'].forEach(id=>$(id).value='');
+  $('bpreview').style.display='none';$('badge-camera').value='';$('badge-library').value='';
+  A.st.qualified='yes';A.st.priority='warm';A.editingLeadId=null;
+  document.querySelectorAll('#vp-scan .tg').forEach(t=>t.classList.remove('active'));
+  $('q-yes').classList.add('active');$('pr-warm').classList.add('active');
+  $('save-btn').textContent='Save lead →';clearDirty();
+}
+function setTG(g,v,el){A.st[g]=v;el.closest('.tgg').querySelectorAll('.tg').forEach(t=>t.classList.remove('active'));el.classList.add('active');markDirty();}
+
+// ── Render leads list ──────────────────────────────────
+function renderVL(){
+  const el=$('vll');
+  if(!A.leads.length){el.innerHTML='<div class="empty">No leads yet.<br/>Scan a badge to start.</div>';return;}
+  el.innerHTML=A.leads.map(l=>{
+    const q=A.Q.find(q=>q.id===l.id);const st=q?q.status:'synced';
+    const sp=st==='synced'?'<span class="pill p-syn">synced</span>':st==='error'?'<span class="pill p-err">failed</span>':'<span class="pill p-pend">pending</span>';
+    const pp=l.priority==='hot'?'p-hot':l.priority==='warm'?'p-warm':'p-cold';
+    return `<div class="li" onclick="viewLead('${l.id}')"><div class="li-row"><div>
+      <div class="li-name">${l.firstname||''} ${l.lastname||''}</div>
+      <div class="li-meta">${[l.title,l.company].filter(Boolean).join(' · ')}</div>
+      ${l.email?`<div class="li-meta">${l.email}</div>`:''}
+    </div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+      <span class="pill ${pp}">${l.priority||'cold'}</span>
+      <span class="pill ${l.qualified==='yes'?'p-q':'p-uq'}">${l.qualified==='yes'?'qualified':'unqualified'}</span>
+      ${sp}
+    </div></div></div>`;
+  }).join('');
+  $('v-cnt').textContent=A.leads.length;
+}
+function updVS(){const hot=A.leads.filter(l=>l.priority==='hot').length;const q=A.leads.filter(l=>l.qualified==='yes').length;$('vs-tot').textContent=A.leads.length;$('vs-hot').textContent=hot;$('vs-q').textContent=q;$('v-cnt').textContent=A.leads.length;}
+
+// ── Sync queue ─────────────────────────────────────────
+async function enqueue(lead,isEdit){
+  // Remove old entry if editing
+  if(isEdit)A.Q=A.Q.filter(q=>q.id!==lead.id);
+  const item={id:lead.id,lead,status:'pending'};A.Q.push(item);pQ();setSS('pend','Syncing…');
+  try{
+    await api({action:isEdit?'updateLead':'saveLead',password:A.S.pw||'',...lead});
+    item.status='synced';pQ();
+    if(A.Q.filter(i=>i.status==='pending'||i.status==='error').length===0)setSS('ok','All synced');
+    renderVL();
+  }catch(e){item.status='error';pQ();setSS('fail','Sync failed — tap Retry');renderVL();}
+}
+async function retryQ(){const pend=A.Q.filter(i=>i.status==='pending'||i.status==='error');if(!pend.length){toast('Nothing to retry');return;}setSS('pend','Retrying…');let fail=0;for(const item of pend){try{await api({action:'saveLead',password:A.S.pw||'',...item.lead});item.status='synced';}catch(e){item.status='error';fail++;}}pQ();renderVL();fail===0?setSS('ok','All synced'):setSS('fail',fail+' failed — tap Retry');}
+function setSS(st,msg){const d=$('sdot'),t=$('smsg'),b=$('retry-btn');d.className='sdot'+(st==='pend'?' pend':st==='fail'?' fail':'');t.textContent=msg;b.style.display=st==='fail'?'block':'none';}
+
+// ── Lead detail view ───────────────────────────────────
+function viewLead(id){
+  const l=A.leads.find(l=>l.id===id);if(!l)return;A.viewId=id;
+  $('ld-name').textContent=l.firstname+' '+l.lastname;
+  const flds=[['Company',l.company],['Title',l.title],['Email',l.email],['Phone',l.phone],['LinkedIn',l.linkedin],['Priority',l.priority],['Qualified',l.qualified],['Source',l.eventSource],['Event',(l.eventName||'')+(l.eventYear?' '+l.eventYear:'')],['Campaign ID',l.campaignId],['CRM',(l.crmType||'').toUpperCase()],['Saved',new Date(parseInt(l.id)).toLocaleString()]].filter(([,v])=>v);
+  $('ld-body').innerHTML=flds.map(([k,v])=>`<div class="dr"><span class="dl">${k}</span><span class="dv">${v}</span></div>`).join('')+(l.notes?`<div style="margin-top:12px;"><p style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Follow-up notes</p><div class="dnotes">${l.notes}</div></div>`:'');
+  openOv('ov-lead');
+}
+function deleteLead(){if(!A.viewId||!confirm('Delete this lead?'))return;A.leads=A.leads.filter(l=>l.id!==A.viewId);A.Q=A.Q.filter(q=>q.id!==A.viewId);pQ();closeOv('ov-lead');renderVL();updVS();toast('Lead deleted from app — remove from Sheets manually if needed');}
+
+// ── Export ─────────────────────────────────────────────
+function openExport(){openOv('ov-export');setExpNote();}
+function setExpFmt(fmt,el){A.expFmt=fmt;document.querySelectorAll('#ov-export .tg').forEach(t=>t.classList.remove('active'));el.classList.add('active');setExpNote();}
+function setExpNote(){const n={hubspot:'Standard HubSpot import format: First Name, Last Name, Title, Company, Email, Phone, LinkedIn, then event and source fields.',salesforce:'Standard Salesforce Lead import format with CampaignId for campaign association.',raw:'Full export with all fields.'};$('exp-note').textContent=n[A.expFmt]||'';}
+
+function stdRows(leads,ev){
+  // Standard column order: First, Last, Title, Company, Email, Phone, LinkedIn, Event, Year, Source, Lead Type, Priority, Qualified, Campaign ID, CRM, Notes, Date
+  return leads.map(l=>[
+    l.firstname||'',l.lastname||'',l.title||'',l.company||'',
+    l.email||'',l.phone||'',l.linkedin||'',
+    l.eventName||ev?.eventName||'',l.eventYear||ev?.eventYear||'',
+    l.eventSource||'',l.leadtype||'badge_scan',
+    l.priority||'cold',l.qualified||'no',
+    l.campaignId||ev?.campaignId||'',l.crmType||ev?.crmType||'',
+    l.notes||'',l.submittedAt||''
+  ]);
+}
+
+function doExport(){
+  const leads=A.leads;if(!leads.length){toast('No leads to export');return;}
+  const ev=A.session?.event||{};
+  let cols,rows;
+  if(A.expFmt==='hubspot'){
+    cols=['First Name','Last Name','Job Title','Company','Email','Phone Number','LinkedIn Bio','Event Name','Event Year','Lead Source','Lead Type','Priority','Qualified','hs_campaign_id','Notes','Create Date'];
+    rows=leads.map(l=>[l.firstname,l.lastname,l.title,l.company,l.email,l.phone,l.linkedin,l.eventName||ev.eventName,l.eventYear||ev.eventYear,l.eventSource||'booth',l.leadtype,l.priority,l.qualified,l.campaignId||ev.campaignId,l.notes,l.submittedAt]);
+  }else if(A.expFmt==='salesforce'){
+    cols=['FirstName','LastName','Title','Company','Email','Phone','LinkedIn__c','Event_Name__c','Event_Year__c','LeadSource','Lead_Type__c','Priority__c','Qualified__c','CampaignId','Description','CreatedDate'];
+    rows=leads.map(l=>[l.firstname,l.lastname,l.title,l.company,l.email,l.phone,l.linkedin,l.eventName||ev.eventName,l.eventYear||ev.eventYear,l.eventSource||'booth',l.leadtype,l.priority,l.qualified,l.campaignId||ev.campaignId,l.notes,l.submittedAt]);
+  }else{
+    cols=['First Name','Last Name','Title','Company','Email','Phone','LinkedIn','Event Name','Event Year','Source','Lead Type','Priority','Qualified','Campaign ID','CRM','Notes','Date'];
+    rows=stdRows(leads,ev);
+  }
+  dlCSV(cols,rows,'leads_'+(ev.code||'export')+'_'+A.expFmt);closeOv('ov-export');
+}
+
+function exportAdmin(){
+  const leads=getFL();if(!leads.length){toast('No leads');return;}
+  const cols=['First Name','Last Name','Title','Company','Email','Phone','LinkedIn','Event Name','Event Year','Vendor','Source','Lead Type','Priority','Qualified','Campaign ID','CRM','Notes','Date'];
+  const rows=leads.map(l=>[l.firstname,l.lastname,l.title,l.company,l.email,l.phone,l.linkedin,l.eventName,l.eventYear,l.vendorName,l.eventSource,l.leadtype,l.priority,l.qualified,l.campaignId,l.crmType,l.notes,l.submittedAt]);
+  dlCSV(cols,rows,'mycelscan_all_leads');
+}
+
+function dlCSV(cols,rows,name){const csv=[cols,...rows].map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=name+'.csv';a.click();toast('CSV downloaded');}
+
+// ── Admin ──────────────────────────────────────────────
+function enterA(){syncF();showSc('admin');aTab('events');loadAE();}
+function aTab(id){document.querySelectorAll('#screen-admin .tab').forEach((t,i)=>t.classList.toggle('active',['events','leads','settings'][i]===id));['ap-events','ap-leads','ap-settings'].forEach(p=>$(p).classList.remove('active'));$('ap-'+id).classList.add('active');if(id==='leads')loadAL();}
+async function pushAPIKeyToSheets(){const ak=$('s-ak').value.trim();if(!ak){toast('Enter your API key first');return;}try{await api({action:'saveConfig',password:A.S.pw,config:{apiKey:ak}});A.S.ak=ak;pS();toast('API key saved to Sheets — all devices will sync');}catch(e){toast('Error: '+e.message);}}
+async function loadAE(){try{const r=await api({action:'getEvents',password:A.S.pw});A.aEvents=r.events||[];renderAE();}catch(e){toast(e.message);}}
+function renderAE(){const el=$('ael');if(!A.aEvents.length){el.innerHTML='<div class="empty">No events yet.<br/>Tap + Event to create one.</div>';return;}el.innerHTML=A.aEvents.map(ev=>`<div class="ecard"><span class="ecode">${ev.code}</span><div class="ename">${ev.vendorName} · ${ev.eventName}${ev.eventYear?' '+ev.eventYear:''}</div><div class="emeta">${(ev.crmType||'csv').toUpperCase()} · ${EF_SRC[ev.eventSource]||ev.eventSource||'Booth'} · Campaign: ${ev.campaignId||'—'}</div><div class="eacts"><button class="btn btn-sm" onclick="editEv('${ev.code}')">Edit</button><button class="btn btn-sm" onclick="openCSVUp('${ev.code}','${ev.vendorName} — ${ev.eventName}')">Upload list</button><button class="btn btn-sm btn-d" onclick="delEv('${ev.code}')">Delete</button></div></div>`).join('');}
+async function loadAL(){try{const r=await api({action:'getLeads',password:A.S.pw});A.aLeads=r.leads||[];const evts=[...new Set(A.aLeads.map(l=>l.eventName).filter(Boolean))];$('a-filt').innerHTML='<option value="">All events</option>'+evts.map(e=>`<option>${e}</option>`).join('');renderAL();}catch(e){toast('Could not load leads: '+e.message);}}
+function getFL(){const f=$('a-filt')?.value||'';return f?A.aLeads.filter(l=>l.eventName===f):A.aLeads;}
+function renderAL(){const leads=getFL();const hot=leads.filter(l=>l.priority==='hot').length;$('as-tot').textContent=leads.length;$('as-hot').textContent=hot;$('as-ev').textContent=new Set(leads.map(l=>l.eventName)).size;const el=$('all');if(!leads.length){el.innerHTML='<div class="empty">No leads yet.</div>';return;}el.innerHTML=leads.map(l=>{const pp=l.priority==='hot'?'p-hot':l.priority==='warm'?'p-warm':'p-cold';return `<div class="li"><div class="li-row"><div><div class="li-name">${l.firstname||''} ${l.lastname||''}</div><div class="li-meta">${[l.title,l.company].filter(Boolean).join(' · ')}</div><div class="li-meta" style="color:var(--text3);">${l.vendorName||''} · ${l.eventName||''} ${l.eventYear||''}</div></div><span class="pill ${pp}">${l.priority||'cold'}</span></div></div>`;}).join('');}
+
+// ── Event form ─────────────────────────────────────────
+function openEF(){A.editCode=null;$('ef-ttl').textContent='New event';clearEF();openOv('ov-event');}
+function editEv(code){const ev=A.aEvents.find(e=>e.code===code);if(!ev)return;A.editCode=code;$('ef-ttl').textContent='Edit event';$('ef-code').value=ev.code||'';$('ef-yr').value=ev.eventYear||'';$('ef-vn').value=ev.vendorName||'';$('ef-en').value=ev.eventName||'';$('ef-crm').value=ev.crmType||'hubspot';$('ef-cid').value=ev.campaignId||'';$('ef-ub').value=ev.utmBase||'';$('ef-us').value=ev.utmSource||'';$('ef-um').value=ev.utmMedium||'event';$('ef-uc').value=ev.utmCampaign||'';$('ef-uct').value=ev.utmContent||'';$('ef-ak').value='';efSrcVal=ev.eventSource||'booth';document.querySelectorAll('#ef-src-tgg .tg').forEach(t=>t.classList.remove('active'));const known=['booth','sponsored_speaker','cocktail_hour','event_list'];if(known.includes(efSrcVal)){document.querySelectorAll('#ef-src-tgg .tg').forEach(t=>{if(t.textContent.trim()===EF_SRC[efSrcVal])t.classList.add('active');});}else{const btns=document.querySelectorAll('#ef-src-tgg .tg');btns[btns.length-1].classList.add('active');$('ef-src-cw').style.display='block';$('ef-src-c').value=efSrcVal;}prevUTM();openOv('ov-event');}
+function setEFSrc(v,el){efSrcVal=v;document.querySelectorAll('#ef-src-tgg .tg').forEach(t=>t.classList.remove('active'));el.classList.add('active');$('ef-src-cw').style.display=v==='custom'?'block':'none';if(v!=='custom')prevUTM();}
+function clearEF(){['ef-code','ef-yr','ef-vn','ef-en','ef-cid','ef-ub','ef-us','ef-uc','ef-uct','ef-ak'].forEach(id=>$(id).value='');$('ef-um').value='event';$('ef-crm').value='hubspot';$('ef-utp').style.display='none';$('ef-err').style.display='none';efSrcVal='booth';document.querySelectorAll('#ef-src-tgg .tg').forEach((t,i)=>t.classList.toggle('active',i===0));$('ef-src-cw').style.display='none';}
+async function submitEF(){const code=$('ef-code').value.trim().toUpperCase();const vn=$('ef-vn').value.trim(),en=$('ef-en').value.trim();if(!code||!vn||!en){showEFErr('Code, vendor name, and event name are required');return;}const src=efSrcVal==='custom'?$('ef-src-c').value.trim().replace(/\s+/g,'_').toLowerCase():efSrcVal;if(!src){showEFErr('Please select an event source');return;}try{await api({action:'saveEvent',password:A.S.pw,code,vendorName:vn,eventName:en,eventYear:$('ef-yr').value.trim(),campaignId:$('ef-cid').value.trim(),crmType:$('ef-crm').value,eventSource:src,utmBase:$('ef-ub').value.trim(),utmSource:$('ef-us').value.trim()||code.toLowerCase().replace(/[^a-z0-9]/g,'_'),utmMedium:$('ef-um').value.trim()||'event',utmCampaign:$('ef-uc').value.trim()||(en+'_'+($('ef-yr').value.trim()||'')).toLowerCase().replace(/\s+/g,'_'),utmContent:$('ef-uct').value.trim(),apiKey:$('ef-ak').value.trim(),editing:A.editCode||undefined});closeOv('ov-event');await loadAE();toast(A.editCode?'Event updated':'Event created');}catch(e){showEFErr(e.message);}}
+async function delEv(code){if(!confirm('Delete event '+code+'?'))return;try{await api({action:'deleteEvent',password:A.S.pw,code});await loadAE();toast('Deleted');}catch(e){toast('Error: '+e.message);}}
+function showEFErr(m){$('ef-err').textContent=m;$('ef-err').style.display='block';}
+function prevUTM(){const base=$('ef-ub').value.trim();if(!base){$('ef-utp').style.display='none';return;}const ev=$('ef-en').value.trim(),yr=$('ef-yr').value.trim();const src=$('ef-us').value.trim()||ev.toLowerCase().replace(/\s+/g,'_');const med=$('ef-um').value.trim()||'event';const camp=$('ef-uc').value.trim()||(ev+(yr?'_'+yr:'')).toLowerCase().replace(/\s+/g,'_');const cont=$('ef-uct').value.trim();const cid=$('ef-cid').value.trim();const sv=efSrcVal==='custom'?($('ef-src-c').value.trim()||'custom'):efSrcVal;const pairs=[['utm_source',src],['utm_medium',med]];if(camp)pairs.push(['utm_campaign',camp]);if(cid)pairs.push(['utm_id',cid]);pairs.push(['utm_term',sv]);if(cont)pairs.push(['utm_content',cont]);$('ef-utb').innerHTML=base+(base.includes('?')?'&':'?')+pairs.map(([k,v])=>`<span class="p">${k}</span>=${encodeURIComponent(v)}`).join('&');$('ef-utp').style.display='block';}
+
+// ── CSV upload ─────────────────────────────────────────
+function openCSVUp(code,label){A.csv.eventCode=code;A.csv.rows=[];A.csv.headers=[];A.csv.mapping={};$('csv-ttl').textContent='Upload list';$('csv-s1').style.display='block';$('csv-s2').style.display='none';$('csv-s3').style.display='none';$('csv-file').value='';openOv('ov-csv');}
+function handleCSV(e){const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=ev=>{const rows=parseCSV(ev.target.result);if(rows.length<2){toast('CSV needs at least a header row and one data row');return;}A.csv.headers=rows[0];A.csv.rows=rows.slice(1);buildMapUI();$('csv-s1').style.display='none';$('csv-s2').style.display='block';};reader.readAsText(f);}
+function parseCSV(text){return text.split(/\r?\n/).filter(l=>l.trim()).map(line=>{const cols=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=c;}cols.push(cur.trim());return cols;});}
+function buildMapUI(){const code=A.csv.eventCode;const saved=A.csv.savedMappings[code]||{};const hdrs=A.csv.headers;const opts='<option value="">— skip —</option>'+hdrs.map((h,i)=>`<option value="${i}">${h}</option>`).join('');$('csv-mapping').innerHTML=LS_FIELDS.map(f=>{const si=saved[f.key]!==undefined?saved[f.key]:'';const ai=hdrs.findIndex(h=>h.toLowerCase().replace(/[\s_]/g,'').includes(f.key.toLowerCase().replace(/[\s_]/g,'')));const sel=si!==''?si:(ai>=0?ai:'');return `<div class="map-row"><div><div class="map-label">${f.label}${f.req?'<span class="map-req">*</span>':''}</div></div><div style="color:var(--text3);font-size:14px;text-align:center;">→</div><select id="map-${f.key}" onchange="updMap()">${opts.replace(`value="${sel}"`,`value="${sel}" selected`)}</select></div>`;}).join('');updMap();buildPrev();}
+function updMap(){LS_FIELDS.forEach(f=>{const el=$('map-'+f.key);if(el)A.csv.mapping[f.key]=el.value!==''?parseInt(el.value):null;});buildPrev();}
+function buildPrev(){const rows=A.csv.rows.slice(0,3);const mapped=LS_FIELDS.filter(f=>A.csv.mapping[f.key]!==null&&A.csv.mapping[f.key]!==undefined);if(!mapped.length){$('csv-pt').innerHTML='';return;}$('csv-pt').innerHTML=`<table><thead><tr>${mapped.map(f=>`<th>${f.label}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>'<tr>'+mapped.map(f=>`<td>${r[A.csv.mapping[f.key]]||''}</td>`).join('')+'</tr>').join('')}</tbody></table>`;}
+function csvBack(){$('csv-s1').style.display='block';$('csv-s2').style.display='none';}
+async function submitCSV(){const missing=LS_FIELDS.filter(f=>f.req&&(A.csv.mapping[f.key]===null||A.csv.mapping[f.key]===undefined));if(missing.length){$('csv-err').textContent='Required: '+missing.map(f=>f.label).join(', ');$('csv-err').style.display='block';return;}$('csv-err').style.display='none';const ms={};LS_FIELDS.forEach(f=>{if(A.csv.mapping[f.key]!==null&&A.csv.mapping[f.key]!==undefined)ms[f.key]=A.csv.mapping[f.key];});A.csv.savedMappings[A.csv.eventCode]=ms;localStorage.setItem('ls_maps',JSON.stringify(A.csv.savedMappings));$('csv-s2').style.display='none';$('csv-s3').style.display='block';const ev=A.aEvents.find(e=>e.code===A.csv.eventCode)||{};const leads=A.csv.rows.filter(r=>r.some(c=>c.trim())).map((r,i)=>({id:'csv_'+Date.now()+'_'+i,code:ev.code||A.csv.eventCode,vendorName:ev.vendorName||'',eventName:ev.eventName||'',eventYear:ev.eventYear||'',campaignId:ev.campaignId||'',crmType:ev.crmType||'other',firstname:A.csv.mapping.firstname!==null?r[A.csv.mapping.firstname]||'':'',lastname:A.csv.mapping.lastname!==null?r[A.csv.mapping.lastname]||'':'',email:A.csv.mapping.email!==null?r[A.csv.mapping.email]||'':'',company:A.csv.mapping.company!==null?r[A.csv.mapping.company]||'':'',title:A.csv.mapping.title!==null?r[A.csv.mapping.title]||'':'',phone:A.csv.mapping.phone!==null?r[A.csv.mapping.phone]||'':'',linkedin:A.csv.mapping.linkedin!==null?r[A.csv.mapping.linkedin]||'':'',notes:A.csv.mapping.notes!==null?r[A.csv.mapping.notes]||'':'',leadtype:'event_list',eventSource:ev.eventSource||'event_list',qualified:'no',priority:'cold',utmBase:ev.utmBase||'',utmSource:ev.utmSource||'',utmMedium:ev.utmMedium||'event',utmCampaign:ev.utmCampaign||'',utmContent:ev.utmContent||'',submittedAt:new Date().toISOString()}));$('csv-prog').textContent='Pushing '+leads.length+' leads to Sheets…';try{await api({action:'saveBatch',password:A.S.pw,leads});$('csv-prog').textContent='Done! Generating CRM export…';const fmt=ev.crmType==='salesforce'?'salesforce':'hubspot';let cols,rows;if(fmt==='hubspot'){cols=['First Name','Last Name','Job Title','Company','Email','Phone Number','LinkedIn Bio','Event Name','Event Year','Lead Source','hs_campaign_id'];rows=leads.map(l=>[l.firstname,l.lastname,l.title,l.company,l.email,l.phone,l.linkedin,l.eventName,l.eventYear,'Event List',ev.campaignId]);}else{cols=['FirstName','LastName','Title','Company','Email','Phone','LeadSource','Event_Name__c','Event_Year__c','CampaignId'];rows=leads.map(l=>[l.firstname,l.lastname,l.title,l.company,l.email,l.phone,'Event',l.eventName,l.eventYear,ev.campaignId]);}setTimeout(()=>{dlCSV(cols,rows,'eventlist_'+A.csv.eventCode+'_'+fmt);closeOv('ov-csv');toast(leads.length+' leads imported & CRM export downloaded');},800);}catch(e){$('csv-s3').style.display='none';$('csv-s2').style.display='block';$('csv-err').textContent='Push failed: '+e.message;$('csv-err').style.display='block';}}
+
+// ── Overlays & utils ───────────────────────────────────
+function openOv(id){$(id).classList.add('open');}
+function closeOv(id,e){if(!e||e.target===$(id))$(id).classList.remove('open');}
+function toast(m){const el=$('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2800);}
+
+window.addEventListener('load',()=>{
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
+  syncF();
+  setTimeout(()=>{const p=A.Q.filter(i=>i.status==='pending'||i.status==='error');if(p.length&&(A.S.url||SCRIPT_URL)!=='YOUR_SCRIPT_URL_HERE')retryQ();},3000);
+});
+</script>
+</body>
+</html>
